@@ -13,7 +13,10 @@ class DicePanel extends StatelessWidget {
   final ValueChanged<List<int?>> onResultsChanged;
   final ValueChanged<bool> onRollingChanged;
   final VoidCallback onOpenSkinSelection;
-  final int? attributeValue;
+  final int diceCount;
+  final int? modifier;
+  final String modifierLabel;
+  final VoidCallback onRollAll;
 
   const DicePanel({
     super.key,
@@ -24,46 +27,88 @@ class DicePanel extends StatelessWidget {
     required this.onResultsChanged,
     required this.onRollingChanged,
     required this.onOpenSkinSelection,
-    required this.attributeValue,
+    required this.diceCount,
+    required this.modifier,
+    required this.modifierLabel,
+    required this.onRollAll,
   });
 
   @override
   Widget build(BuildContext context) {
     const cardColor = Color(0xFF242424);
+    const resultItemWidth = 56.0;
 
-    final die1 = results.isNotEmpty ? results[0] : null;
-    final die2 = results.length > 1 ? results[1] : null;
-    final dragonDie = results.length > 2 ? results[2] : null;
+    final displayDiceCount = diceCount < 3 ? 3 : diceCount;
 
-    final diceSum = die1 != null && die2 != null && dragonDie != null
-        ? die1 + die2 + dragonDie
+    final allDiceRolled =
+        diceCount <= results.length &&
+        results.take(diceCount).every((value) => value != null);
+
+    final diceSum = allDiceRolled
+        ? results.take(diceCount).fold<int>(0, (sum, value) => sum + value!)
         : null;
 
-    final total = diceSum != null && attributeValue != null
-        ? diceSum + attributeValue!
-        : null;
+    final total = diceSum != null ? diceSum + (modifier ?? 0) : null;
 
     Widget resultItem(String label, int? value, {Color? color}) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            style: const TextStyle(color: Colors.white54, fontSize: 8),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value?.toString() ?? '-',
-            style: TextStyle(
-              color: color ?? Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+      return SizedBox(
+        width: resultItemWidth,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white54, fontSize: 8),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              value?.toString() ?? '-',
+              style: TextStyle(
+                color: color ?? Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget totalItem() {
+      return SizedBox(
+        width: resultItemWidth,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Total',
+              style: TextStyle(color: Colors.white54, fontSize: 8),
+            ),
+            const SizedBox(height: 2),
+            Container(
+              width: 28,
+              height: 28,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.amberAccent, width: 1.5),
+              ),
+              child: Text(
+                total?.toString() ?? '-',
+                style: const TextStyle(
+                  color: Colors.amberAccent,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -77,73 +122,40 @@ class DicePanel extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
           children: [
-            // Dice
             Expanded(
               flex: 3,
               child: DiceGroup(
                 key: diceGroupKey,
-                diceCount: 3,
+                diceCount: diceCount,
                 skinSet: selectedSkinSet,
                 onResultsChanged: onResultsChanged,
                 onRollingChanged: onRollingChanged,
               ),
             ),
-
-            // Results
             Expanded(
               flex: 5,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  resultItem('Die 1', die1),
-                  resultItem('Die 2', die2),
-                  resultItem(
-                    'Dragon Die',
-                    dragonDie,
-                    color: Colors.orangeAccent,
-                  ),
-                  resultItem('Dice Sum', diceSum, color: Colors.cyanAccent),
-                  resultItem(
-                    'Attribute',
-                    attributeValue,
-                    color: Colors.greenAccent,
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Total',
-                        style: TextStyle(color: Colors.white54, fontSize: 8),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    for (int i = 0; i < displayDiceCount; i++)
+                      resultItem(
+                        i == 2 ? 'Dragon Die' : 'Die ${i + 1}',
+                        i < diceCount && i < results.length ? results[i] : null,
+                        color: i == 2 ? Colors.orangeAccent : null,
                       ),
-                      const SizedBox(height: 2),
-                      Container(
-                        width: 28,
-                        height: 28,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.amberAccent,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Text(
-                          total?.toString() ?? '-',
-                          style: const TextStyle(
-                            color: Colors.amberAccent,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    resultItem('Dice Sum', diceSum, color: Colors.cyanAccent),
+                    resultItem(
+                      modifierLabel.isEmpty ? 'Modifier' : modifierLabel,
+                      modifier,
+                      color: Colors.greenAccent,
+                    ),
+                    totalItem(),
+                  ],
+                ),
               ),
             ),
-
-            // Buttons
             Expanded(
               flex: 1,
               child: Row(
@@ -166,9 +178,7 @@ class DicePanel extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: isRolling
-                        ? null
-                        : () => diceGroupKey.currentState?.rollAll(),
+                    onPressed: isRolling ? null : onRollAll,
                     icon: const Icon(
                       Icons.casino_outlined,
                       color: Colors.white,

@@ -22,7 +22,9 @@ class _DiceScreenState extends State<DiceScreen> {
   List<int?> _results = [null, null, null];
   bool _isRolling = false;
 
-  int? _selectedAttributeValue;
+  int _diceCount = 3;
+  int? _selectedModifier;
+  String _modifierLabel = 'Attribute';
 
   DiceSetSkin _selectedSkinSet = DiceSetSkin.classic;
 
@@ -38,15 +40,61 @@ class _DiceScreenState extends State<DiceScreen> {
     });
   }
 
-  // Roll all three dice
+  void _startRoll({
+    required int diceCount,
+    required int modifier,
+    required String modifierLabel,
+  }) {
+    if (_isRolling || diceCount <= 0) return;
+
+    setState(() {
+      _diceCount = diceCount;
+      _selectedModifier = modifier;
+      _modifierLabel = modifierLabel;
+      _results = List.filled(diceCount < 3 ? 3 : diceCount, null);
+      _isRolling = true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _diceGroupKey.currentState?.rollAll();
+    });
+  }
+
+  // Attribute roll: 3d6 + attribute value.
   void _rollDice(int? attributeValue) {
+    _startRoll(
+      diceCount: 3,
+      modifier: attributeValue ?? 0,
+      modifierLabel: 'Attribute',
+    );
+  }
+
+  // Custom roll: used by weapon attacks and damage.
+  void _rollCustomDice(int diceCount, int modifier, String modifierLabel) {
+    _startRoll(
+      diceCount: diceCount,
+      modifier: modifier,
+      modifierLabel: modifierLabel,
+    );
+  }
+
+  // Roll all three dice from the dice panel.
+  void _rollAllThreeDice() {
     if (_isRolling) return;
 
     setState(() {
-      _selectedAttributeValue = attributeValue;
+      _diceCount = 3;
+      _selectedModifier = null;
+      _modifierLabel = '';
+      _results = [null, null, null];
+      _isRolling = true;
     });
 
-    _diceGroupKey.currentState?.rollAll();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _diceGroupKey.currentState?.rollAll();
+    });
   }
 
   Future<void> _openSkinSelection() async {
@@ -64,7 +112,7 @@ class _DiceScreenState extends State<DiceScreen> {
     if (selectedSkinSet.id != _selectedSkinSet.id) {
       setState(() {
         _selectedSkinSet = selectedSkinSet;
-        _results = [null, null, null];
+        _results = List.filled(_diceCount < 3 ? 3 : _diceCount, null);
       });
     }
   }
@@ -78,10 +126,12 @@ class _DiceScreenState extends State<DiceScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Main content: two columns
-            Positioned.fill(child: CharacterSheet(onRollDice: _rollDice)),
-
-            // Dice panel: floating above both columns
+            Positioned.fill(
+              child: CharacterSheet(
+                onRollDice: _rollDice,
+                onRollCustomDice: _rollCustomDice,
+              ),
+            ),
             Positioned(
               left: 0,
               right: 0,
@@ -91,10 +141,13 @@ class _DiceScreenState extends State<DiceScreen> {
                 results: _results,
                 isRolling: _isRolling,
                 selectedSkinSet: _selectedSkinSet,
-                attributeValue: _selectedAttributeValue,
+                modifier: _selectedModifier,
+                modifierLabel: _modifierLabel,
+                diceCount: _diceCount,
                 onResultsChanged: _onResultsChanged,
                 onRollingChanged: _onRollingChanged,
                 onOpenSkinSelection: _openSkinSelection,
+                onRollAll: _rollAllThreeDice,
               ),
             ),
           ],

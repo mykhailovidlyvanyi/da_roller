@@ -6,13 +6,20 @@ import 'attributes_section.dart';
 import 'character_header.dart';
 import 'character_info_section.dart';
 import 'combat_section.dart';
+import 'melee_weapons_section.dart';
 import 'section_title.dart';
 import 'placeholder_section.dart';
 
 class CharacterSheet extends StatefulWidget {
   final ValueChanged<int?> onRollDice;
+  final void Function(int diceCount, int modifier, String modifierLabel)
+  onRollCustomDice;
 
-  const CharacterSheet({super.key, required this.onRollDice});
+  const CharacterSheet({
+    super.key,
+    required this.onRollDice,
+    required this.onRollCustomDice,
+  });
 
   @override
   State<CharacterSheet> createState() => _CharacterSheetState();
@@ -26,7 +33,6 @@ class _CharacterSheetState extends State<CharacterSheet> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Left column: Attributes (20%)
         Expanded(
           flex: 1,
           child: AttributesSection(
@@ -41,7 +47,6 @@ class _CharacterSheetState extends State<CharacterSheet> {
 
         const SizedBox(width: 16),
 
-        // Right column: Everything else (80%)
         Expanded(
           flex: 4,
           child: SingleChildScrollView(
@@ -58,6 +63,10 @@ class _CharacterSheetState extends State<CharacterSheet> {
                 const SizedBox(height: 32),
 
                 CombatSection(dexterity: _dexterity),
+
+                const SizedBox(height: 20),
+
+                MeleeWeaponsSection(onRollCustomDice: widget.onRollCustomDice),
 
                 const SizedBox(height: 32),
 

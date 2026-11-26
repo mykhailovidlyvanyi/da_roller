@@ -1,5 +1,4 @@
 //lib/widgets/dice/dice_group.dart
-
 import 'package:material_ui/material_ui.dart';
 
 import '../../models/dice_set_skin.dart';
@@ -26,6 +25,8 @@ class DiceGroup extends StatefulWidget {
 }
 
 class DiceGroupState extends State<DiceGroup> {
+  static const int _minimumDiceCount = 3;
+
   late List<GlobalKey<Dice3DState>> _diceKeys;
   late List<int?> _results;
 
@@ -38,6 +39,10 @@ class DiceGroupState extends State<DiceGroup> {
 
   List<int?> get results => List.unmodifiable(_results);
 
+  int get _displayDiceCount => widget.diceCount > _minimumDiceCount
+      ? widget.diceCount
+      : _minimumDiceCount;
+
   @override
   void initState() {
     super.initState();
@@ -45,12 +50,11 @@ class DiceGroupState extends State<DiceGroup> {
   }
 
   void _initializeDice() {
-    _diceKeys = List.generate(
-      widget.diceCount,
-      (_) => GlobalKey<Dice3DState>(),
-    );
+    final count = _displayDiceCount;
 
-    _results = List.filled(widget.diceCount, null);
+    _diceKeys = List.generate(count, (_) => GlobalKey<Dice3DState>());
+
+    _results = List.filled(count, null);
   }
 
   @override
@@ -58,17 +62,23 @@ class DiceGroupState extends State<DiceGroup> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.diceCount != widget.diceCount) {
-      _initializeDice();
+      final requiredCount = _displayDiceCount;
+
+      if (requiredCount != _diceKeys.length) {
+        _initializeDice();
+      } else {
+        // Clear results of dice that are no longer active.
+        for (var i = widget.diceCount; i < _results.length; i++) {
+          _results[i] = null;
+        }
+      }
     }
   }
 
   bool _canRoll() => !_isRolling;
 
   void _startRoll(List<int> indices) {
-    if (!_canRoll()) {
-      debugPrint('[DiceGroup] ROLL BLOCKED: animation in progress');
-      return;
-    }
+    if (!_canRoll()) return;
 
     setState(() {
       _isRolling = true;
@@ -78,10 +88,6 @@ class DiceGroupState extends State<DiceGroup> {
         _results[index] = null;
       }
     });
-
-    debugPrint(
-      '[DiceGroup] ROLLS LOCKED: dice ${indices.map((i) => i + 1).join(', ')}',
-    );
 
     widget.onRollingChanged?.call(true);
     widget.onResultsChanged?.call(results);
@@ -113,13 +119,9 @@ class DiceGroupState extends State<DiceGroup> {
       }
     });
 
-    debugPrint('[DiceGroup] Dice ${index + 1} completed: $result');
-
     widget.onResultsChanged?.call(results);
 
     if (!_isRolling) {
-      debugPrint('[DiceGroup] ROLLS UNLOCKED: all dice completed');
-
       widget.onRollingChanged?.call(false);
     }
   }
@@ -128,35 +130,38 @@ class DiceGroupState extends State<DiceGroup> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cellWidth = constraints.maxWidth / widget.diceCount;
-
-        final availableHeight = constraints.maxHeight;
+        final cellWidth = constraints.maxWidth / _displayDiceCount;
 
         final diceSize = (cellWidth / 1.6)
             .clamp(30.0, 150.0)
             .toDouble()
-            .clamp(0.0, availableHeight)
+            .clamp(0.0, constraints.maxHeight)
             .toDouble();
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(widget.diceCount, (index) {
+          children: List.generate(_displayDiceCount, (index) {
             final diceSkin = index < widget.skinSet.diceSkins.length
                 ? widget.skinSet.diceSkins[index]
                 : DiceSkin.classic;
 
+            final isActive = index < widget.diceCount;
+
             return SizedBox(
               width: cellWidth,
               child: GestureDetector(
-                onTap: _isRolling ? null : () => rollSingle(index),
-                child: Dice3D(
-                  key: _diceKeys[index],
-                  size: diceSize,
-                  skin: diceSkin,
-                  diceService: _diceService,
-                  onRollComplete: (result) {
-                    _onRollComplete(index, result);
-                  },
+                onTap: _isRolling || !isActive ? null : () => rollSingle(index),
+                child: Opacity(
+                  opacity: isActive ? 1 : 0.45,
+                  child: Dice3D(
+                    key: _diceKeys[index],
+                    size: diceSize,
+                    skin: diceSkin,
+                    diceService: _diceService,
+                    onRollComplete: (result) {
+                      _onRollComplete(index, result);
+                    },
+                  ),
                 ),
               ),
             );
