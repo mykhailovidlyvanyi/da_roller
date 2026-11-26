@@ -164,5 +164,106 @@ void main() {
         findsNothing,
       );
     });
+
+    testWidgets('negative damage does not restore health', (tester) async {
+      await tester.pumpWidget(createTestWidget());
+
+      final damageField = find.byType(TextField);
+
+      await tester.enterText(damageField, '-5');
+      await tester.pump();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      final healthCard = find.ancestor(
+        of: find.text('Current health'),
+        matching: find.byType(CombatStatCard),
+      );
+
+      expect(
+        find.descendant(of: healthCard, matching: find.text('30')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('armor exceeding damage does not restore health', (
+      tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+
+      // Set Armor to 10.
+      final armorCard = find.ancestor(
+        of: find.text('Armor'),
+        matching: find.byType(CombatStatCard),
+      );
+
+      await tester.tap(armorCard);
+      await tester.pumpAndSettle();
+
+      final armorField = find.descendant(
+        of: armorCard,
+        matching: find.byType(TextField),
+      );
+
+      await tester.enterText(armorField, '10');
+      await tester.tap(find.byIcon(Icons.check));
+      await tester.pumpAndSettle();
+
+      // Apply 5 damage.
+      final damageField = find.byType(TextField);
+
+      await tester.enterText(damageField, '5');
+      await tester.pump();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      final healthCard = find.ancestor(
+        of: find.text('Current health'),
+        matching: find.byType(CombatStatCard),
+      );
+
+      expect(
+        find.descendant(of: healthCard, matching: find.text('30')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('damage cannot reduce health below zero', (tester) async {
+      await tester.pumpWidget(createTestWidget());
+
+      final damageField = find.byType(TextField);
+
+      await tester.enterText(damageField, '100');
+      await tester.pump();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      final healthCard = find.ancestor(
+        of: find.text('Current health'),
+        matching: find.byType(CombatStatCard),
+      );
+
+      expect(
+        find.descendant(of: healthCard, matching: find.text('0')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('clears Damage taken after applying damage', (tester) async {
+      await tester.pumpWidget(createTestWidget());
+
+      final damageField = find.byType(TextField);
+
+      await tester.enterText(damageField, '5');
+      await tester.pump();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(damageField).controller!.text, '');
+    });
   });
 }

@@ -24,7 +24,7 @@ class _CombatSectionState extends State<CombatSection> {
             ? damageTaken - (_combat.armor - _combat.armorPenalty)
             : damageTaken;
 
-        _combat.currentHealth -= damage;
+        _combat.currentHealth -= damage.clamp(0, _combat.currentHealth);
       }
 
       _combat.damageTaken = null;
