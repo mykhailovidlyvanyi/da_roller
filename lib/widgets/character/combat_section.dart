@@ -8,14 +8,32 @@ import 'combat_stat_card.dart';
 import 'section_title.dart';
 
 class CombatSection extends StatefulWidget {
-  const CombatSection({super.key});
+  final int dexterity;
+
+  const CombatSection({super.key, required this.dexterity});
 
   @override
   State<CombatSection> createState() => _CombatSectionState();
 }
 
 class _CombatSectionState extends State<CombatSection> {
-  final CharacterCombat _combat = CharacterCombat();
+  late final CharacterCombat _combat;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _combat = CharacterCombat(dexterity: widget.dexterity);
+  }
+
+  @override
+  void didUpdateWidget(covariant CombatSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.dexterity != widget.dexterity) {
+      _combat.dexterity = widget.dexterity;
+    }
+  }
 
   void _applyDamage(int? damageTaken) {
     setState(() {
@@ -64,11 +82,8 @@ class _CombatSectionState extends State<CombatSection> {
                 _stat(
                   title: 'Defence',
                   value: _combat.defence,
-                  onChanged: (v) {
-                    if (v != null) {
-                      setState(() => _combat.defence = v);
-                    }
-                  },
+                  onChanged: (_) {},
+                  editable: false,
                 ),
                 _stat(
                   title: 'Shield bonus',

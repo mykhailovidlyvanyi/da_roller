@@ -7,9 +7,20 @@ import 'package:da_roller/widgets/character/attributes_section.dart';
 import 'package:da_roller/widgets/character/attribute_card.dart';
 
 void main() {
+  int? updatedDexterity;
+
   Widget createTestWidget() {
+    updatedDexterity = null;
+
     return MaterialApp(
-      home: Scaffold(body: AttributesSection(onRollDice: (_) {})),
+      home: Scaffold(
+        body: AttributesSection(
+          onRollDice: (_) {},
+          onDexterityChanged: (value) {
+            updatedDexterity = value;
+          },
+        ),
+      ),
     );
   }
 
@@ -97,6 +108,44 @@ void main() {
       );
 
       expect(find.text('0'), findsNWidgets(7));
+
+      // Changing Strength must not trigger the Dexterity callback.
+      expect(updatedDexterity, isNull);
+    });
+
+    testWidgets('notifies when Dexterity changes', (tester) async {
+      await setLargeScreen(tester);
+      await tester.pumpWidget(createTestWidget());
+
+      final dexterityCard = find.ancestor(
+        of: find.text('DEXTERITY'),
+        matching: find.byType(AttributeCard),
+      );
+
+      final valueFinder = find.descendant(
+        of: dexterityCard,
+        matching: find.text('0'),
+      );
+
+      await doubleTapFinder(tester, valueFinder);
+
+      await tester.enterText(
+        find.descendant(of: dexterityCard, matching: find.byType(TextField)),
+        '5',
+      );
+
+      await tester.tap(
+        find.descendant(of: dexterityCard, matching: find.byIcon(Icons.check)),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(updatedDexterity, 5);
+
+      expect(
+        find.descendant(of: dexterityCard, matching: find.text('5')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('updates only the selected attribute focus', (tester) async {
@@ -126,6 +175,9 @@ void main() {
       );
 
       expect(find.text('Add focus...'), findsNWidgets(7));
+
+      // Changing Focus must not trigger the Dexterity callback.
+      expect(updatedDexterity, isNull);
     });
   });
 }

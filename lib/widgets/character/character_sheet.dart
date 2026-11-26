@@ -1,4 +1,4 @@
-// /lib/widgets/character/character_sheet.dart
+//lib/widgets/character/character_sheet.dart
 
 import 'package:material_ui/material_ui.dart';
 
@@ -9,10 +9,17 @@ import 'combat_section.dart';
 import 'section_title.dart';
 import 'placeholder_section.dart';
 
-class CharacterSheet extends StatelessWidget {
+class CharacterSheet extends StatefulWidget {
   final ValueChanged<int?> onRollDice;
 
   const CharacterSheet({super.key, required this.onRollDice});
+
+  @override
+  State<CharacterSheet> createState() => _CharacterSheetState();
+}
+
+class _CharacterSheetState extends State<CharacterSheet> {
+  int _dexterity = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +27,17 @@ class CharacterSheet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Left column: Attributes (20%)
-        Expanded(flex: 1, child: AttributesSection(onRollDice: onRollDice)),
+        Expanded(
+          flex: 1,
+          child: AttributesSection(
+            onRollDice: widget.onRollDice,
+            onDexterityChanged: (value) {
+              setState(() {
+                _dexterity = value;
+              });
+            },
+          ),
+        ),
 
         const SizedBox(width: 16),
 
@@ -40,7 +57,7 @@ class CharacterSheet extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
-                const CombatSection(),
+                CombatSection(dexterity: _dexterity),
 
                 const SizedBox(height: 32),
 

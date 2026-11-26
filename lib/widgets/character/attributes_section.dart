@@ -9,7 +9,13 @@ import 'section_title.dart';
 class AttributesSection extends StatefulWidget {
   final ValueChanged<int?> onRollDice;
 
-  const AttributesSection({super.key, required this.onRollDice});
+  final ValueChanged<int> onDexterityChanged;
+
+  const AttributesSection({
+    super.key,
+    required this.onRollDice,
+    required this.onDexterityChanged,
+  });
 
   @override
   State<AttributesSection> createState() => _AttributesSectionState();
@@ -38,6 +44,10 @@ class _AttributesSectionState extends State<AttributesSection> {
     setState(() {
       _attributes[index] = updatedAttribute;
     });
+
+    if (updatedAttribute.name == 'DEXTERITY') {
+      widget.onDexterityChanged(updatedAttribute.value);
+    }
   }
 
   @override

@@ -1,7 +1,10 @@
 //lib/models/character_combat.dart
 
 class CharacterCombat {
-  int defence;
+  int dexterity;
+
+  int get defence => 10 + dexterity;
+
   int shieldBonus;
   bool shieldActive;
 
@@ -20,7 +23,7 @@ class CharacterCombat {
   bool includeArmor;
 
   CharacterCombat({
-    this.defence = 10,
+    this.dexterity = 0,
     this.shieldBonus = 0,
     this.shieldActive = false,
     this.armor = 0,

@@ -7,9 +7,11 @@ import 'package:da_roller/widgets/character/combat_section.dart';
 import 'package:da_roller/widgets/character/combat_stat_card.dart';
 
 void main() {
-  Widget createTestWidget() {
-    return const MaterialApp(
-      home: Scaffold(body: SingleChildScrollView(child: CombatSection())),
+  Widget createTestWidget({int dexterity = 0}) {
+    return MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(child: CombatSection(dexterity: dexterity)),
+      ),
     );
   }
 
@@ -47,6 +49,66 @@ void main() {
 
       expect(find.text('Damage taken'), findsOneWidget);
       expect(find.text('Include armor'), findsOneWidget);
+    });
+
+    testWidgets('calculates Defence from Dexterity', (tester) async {
+      await tester.pumpWidget(createTestWidget(dexterity: 4));
+
+      final defenceCard = find.ancestor(
+        of: find.text('Defence'),
+        matching: find.byType(CombatStatCard),
+      );
+
+      expect(
+        find.descendant(of: defenceCard, matching: find.text('14')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('updates Defence when Dexterity changes', (tester) async {
+      await tester.pumpWidget(createTestWidget(dexterity: 2));
+
+      final defenceCard = find.ancestor(
+        of: find.text('Defence'),
+        matching: find.byType(CombatStatCard),
+      );
+
+      expect(
+        find.descendant(of: defenceCard, matching: find.text('12')),
+        findsOneWidget,
+      );
+
+      await tester.pumpWidget(createTestWidget(dexterity: 6));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(of: defenceCard, matching: find.text('16')),
+        findsOneWidget,
+      );
+
+      expect(
+        find.descendant(of: defenceCard, matching: find.text('12')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('Defence cannot be edited manually', (tester) async {
+      await tester.pumpWidget(createTestWidget());
+
+      final defenceCard = find.ancestor(
+        of: find.text('Defence'),
+        matching: find.byType(CombatStatCard),
+      );
+
+      await tester.tap(defenceCard);
+      await tester.pumpAndSettle();
+
+      final field = find.descendant(
+        of: defenceCard,
+        matching: find.byType(TextField),
+      );
+
+      expect(field, findsNothing);
     });
 
     testWidgets('displays calculated movement values', (tester) async {
@@ -132,37 +194,6 @@ void main() {
       expect(switches, hasLength(2));
       expect(switches[0].value, false);
       expect(switches[1].value, true);
-    });
-
-    testWidgets('updates Defence when edited', (tester) async {
-      await tester.pumpWidget(createTestWidget());
-
-      final card = find.ancestor(
-        of: find.text('Defence'),
-        matching: find.byType(CombatStatCard),
-      );
-
-      await tester.tap(card);
-      await tester.pumpAndSettle();
-
-      final field = find.descendant(of: card, matching: find.byType(TextField));
-
-      expect(field, findsOneWidget);
-
-      await tester.enterText(field, '15');
-
-      await tester.tap(find.byIcon(Icons.check));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.descendant(of: card, matching: find.text('15')),
-        findsOneWidget,
-      );
-
-      expect(
-        find.descendant(of: card, matching: find.text('10')),
-        findsNothing,
-      );
     });
 
     testWidgets('negative damage does not restore health', (tester) async {
