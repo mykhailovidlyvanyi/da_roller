@@ -1,4 +1,4 @@
-// lib/services/dice_service.dart
+//lib/services/dice_service.dart
 
 import 'dart:math';
 

@@ -1,4 +1,4 @@
-// lib/screens/skin_selection_screen.dart
+//lib/screens/skin_selection_screen.dart
 
 import 'package:material_ui/material_ui.dart';
 

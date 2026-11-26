@@ -1,4 +1,4 @@
-// /lib/widgets/character/placeholder_section.dart
+//lib/widgets/character/placeholder_section.dart
 
 import 'package:material_ui/material_ui.dart';
 

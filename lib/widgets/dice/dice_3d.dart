@@ -1,4 +1,4 @@
-// lib/widgets/dice/dice_3d.dart
+//lib/widgets/dice/dice_3d.dart
 
 import 'dart:math';
 import 'dart:typed_data';

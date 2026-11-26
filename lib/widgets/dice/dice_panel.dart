@@ -1,4 +1,4 @@
-// /lib/widgets/dice/dice_panel.dart
+//lib/widgets/dice/dice_panel.dart
 
 import 'package:material_ui/material_ui.dart';
 

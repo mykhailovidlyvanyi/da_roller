@@ -1,4 +1,4 @@
-// /lib/screens/dice_screen.dart
+//lib/screens/dice_screen.dart
 
 import 'package:material_ui/material_ui.dart';
 

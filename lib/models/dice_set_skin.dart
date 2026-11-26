@@ -1,4 +1,4 @@
-// lib/models/dice_set_skin.dart
+//lib/models/dice_set_skin.dart
 
 import 'dice_skin.dart';
 

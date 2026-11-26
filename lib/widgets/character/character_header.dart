@@ -1,4 +1,4 @@
-// /lib/widgets/character/character_header.dart
+//lib/widgets/character/character_header.dart
 
 import 'package:material_ui/material_ui.dart';
 
