@@ -58,5 +58,66 @@ void main() {
       expect(combat.currentMana, 14);
       expect(combat.damageTaken, 6);
     });
+
+    group('health limits', () {
+      test('limits current health to max health during initialization', () {
+        final combat = CharacterCombat(maxHealth: 30, currentHealth: 50);
+
+        expect(combat.currentHealth, 30);
+      });
+
+      test('does not allow current health below zero', () {
+        final combat = CharacterCombat();
+
+        combat.currentHealth = -10;
+
+        expect(combat.currentHealth, 0);
+      });
+
+      test('does not allow current health above max health', () {
+        final combat = CharacterCombat();
+
+        combat.currentHealth = 50;
+
+        expect(combat.currentHealth, 30);
+      });
+
+      test('does not allow negative damage to increase health above max', () {
+        final combat = CharacterCombat();
+
+        combat.currentHealth -= -10;
+
+        expect(combat.currentHealth, 30);
+      });
+
+      test('reduces current health when max health decreases', () {
+        final combat = CharacterCombat();
+
+        combat.maxHealth = 20;
+
+        expect(combat.currentHealth, 20);
+      });
+
+      test(
+        'does not allow current health below zero after max health changes',
+        () {
+          final combat = CharacterCombat();
+
+          combat.currentHealth = -10;
+          combat.maxHealth = 20;
+
+          expect(combat.currentHealth, 0);
+        },
+      );
+
+      test('does not allow negative max health', () {
+        final combat = CharacterCombat();
+
+        combat.maxHealth = -10;
+
+        expect(combat.maxHealth, 0);
+        expect(combat.currentHealth, 0);
+      });
+    });
   });
 }

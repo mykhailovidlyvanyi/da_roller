@@ -10,8 +10,8 @@ class CharacterCombat {
 
   int speed;
 
-  int maxHealth;
-  int currentHealth;
+  int _maxHealth;
+  int _currentHealth;
 
   int? maxMana;
   int? currentMana;
@@ -26,13 +26,27 @@ class CharacterCombat {
     this.armor = 0,
     this.armorPenalty = 0,
     this.speed = 10,
-    this.maxHealth = 30,
-    this.currentHealth = 30,
+    int maxHealth = 30,
+    int currentHealth = 30,
     this.maxMana,
     this.currentMana,
     this.damageTaken,
     this.includeArmor = true,
-  });
+  }) : _maxHealth = maxHealth < 0 ? 0 : maxHealth,
+       _currentHealth = currentHealth.clamp(0, maxHealth < 0 ? 0 : maxHealth);
+
+  int get maxHealth => _maxHealth;
+
+  set maxHealth(int value) {
+    _maxHealth = value < 0 ? 0 : value;
+    _currentHealth = _currentHealth.clamp(0, _maxHealth);
+  }
+
+  int get currentHealth => _currentHealth;
+
+  set currentHealth(int value) {
+    _currentHealth = value.clamp(0, _maxHealth);
+  }
 
   int get charge => speed ~/ 2;
 
