@@ -17,6 +17,20 @@ class CombatSection extends StatefulWidget {
 class _CombatSectionState extends State<CombatSection> {
   final CharacterCombat _combat = CharacterCombat();
 
+  void _applyDamage(int? damageTaken) {
+    setState(() {
+      if (damageTaken != null) {
+        final damage = _combat.includeArmor
+            ? damageTaken - (_combat.armor - _combat.armorPenalty)
+            : damageTaken;
+
+        _combat.currentHealth -= damage;
+      }
+
+      _combat.damageTaken = null;
+    });
+  }
+
   Widget _stat({
     Key? key,
     required String title,
@@ -69,8 +83,9 @@ class _CombatSectionState extends State<CombatSection> {
                   title: 'Shield active',
                   isToggle: true,
                   toggleValue: _combat.shieldActive,
-                  onToggleChanged: (v) =>
-                      setState(() => _combat.shieldActive = v),
+                  onToggleChanged: (v) {
+                    setState(() => _combat.shieldActive = v);
+                  },
                 ),
               ],
             ),
@@ -153,12 +168,16 @@ class _CombatSectionState extends State<CombatSection> {
                 _stat(
                   title: 'Max mana',
                   value: _combat.maxMana,
-                  onChanged: (v) => setState(() => _combat.maxMana = v),
+                  onChanged: (v) {
+                    setState(() => _combat.maxMana = v);
+                  },
                 ),
                 _stat(
                   title: 'Current mana',
                   value: _combat.currentMana,
-                  onChanged: (v) => setState(() => _combat.currentMana = v),
+                  onChanged: (v) {
+                    setState(() => _combat.currentMana = v);
+                  },
                 ),
               ],
             ),
@@ -169,9 +188,7 @@ class _CombatSectionState extends State<CombatSection> {
                   title: 'Damage taken',
                   value: _combat.damageTaken,
                   isAlwaysEditing: true,
-                  onValueChanged: (v) {
-                    setState(() => _combat.damageTaken = v);
-                  },
+                  onValueChanged: _applyDamage,
                 ),
                 CombatStatCard(
                   title: 'Include armor',

@@ -31,6 +31,7 @@ class CombatStatCard extends StatefulWidget {
 
 class _CombatStatCardState extends State<CombatStatCard> {
   final _valueController = TextEditingController();
+  final _valueFocusNode = FocusNode();
 
   bool _isEditing = false;
 
@@ -39,7 +40,9 @@ class _CombatStatCardState extends State<CombatStatCard> {
   @override
   void initState() {
     super.initState();
+
     _valueController.text = widget.value?.toString() ?? '';
+    _valueFocusNode.addListener(_handleFocusChange);
   }
 
   @override
@@ -60,6 +63,8 @@ class _CombatStatCardState extends State<CombatStatCard> {
 
   @override
   void dispose() {
+    _valueFocusNode.removeListener(_handleFocusChange);
+    _valueFocusNode.dispose();
     _valueController.dispose();
     super.dispose();
   }
@@ -98,14 +103,23 @@ class _CombatStatCardState extends State<CombatStatCard> {
     });
   }
 
-  void _onAlwaysEditingChanged(String text) {
-    final trimmedText = text.trim();
+  void _handleFocusChange() {
+    if (!_valueFocusNode.hasFocus && widget.isAlwaysEditing) {
+      _saveAlwaysEditingValue();
+    }
+  }
 
-    final int? value = trimmedText.isEmpty ? null : int.tryParse(trimmedText);
+  void _saveAlwaysEditingValue() {
+    final text = _valueController.text.trim();
+    final int? value = text.isEmpty ? null : int.tryParse(text);
 
-    if (trimmedText.isNotEmpty && value == null) return;
+    if (text.isNotEmpty && value == null) {
+      _valueController.text = widget.value?.toString() ?? '';
+      return;
+    }
 
     widget.onValueChanged?.call(value);
+    _valueController.clear();
   }
 
   @override
@@ -131,7 +145,6 @@ class _CombatStatCardState extends State<CombatStatCard> {
               ),
             ),
           ),
-
           if (widget.isToggle)
             Switch(value: widget.toggleValue, onChanged: widget.onToggleChanged)
           else
@@ -145,6 +158,9 @@ class _CombatStatCardState extends State<CombatStatCard> {
                           height: 24,
                           child: TextField(
                             controller: _valueController,
+                            focusNode: widget.isAlwaysEditing
+                                ? _valueFocusNode
+                                : null,
                             autofocus: widget.isAlwaysEditing,
                             keyboardType: const TextInputType.numberWithOptions(
                               signed: true,
@@ -160,11 +176,8 @@ class _CombatStatCardState extends State<CombatStatCard> {
                               contentPadding: EdgeInsets.zero,
                               border: InputBorder.none,
                             ),
-                            onChanged: widget.isAlwaysEditing
-                                ? _onAlwaysEditingChanged
-                                : null,
                             onSubmitted: widget.isAlwaysEditing
-                                ? null
+                                ? (_) => _valueFocusNode.unfocus()
                                 : (_) => _saveValue(),
                           ),
                         ),

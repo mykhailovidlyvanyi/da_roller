@@ -95,13 +95,9 @@ void main() {
         ),
       );
 
-      // Open editing mode.
       await tester.tap(find.text('Defence'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(TextField), findsOneWidget);
-
-      // Clear the input.
       await tester.enterText(find.byType(TextField), '');
       await tester.pump();
 
@@ -110,11 +106,7 @@ void main() {
         '',
       );
 
-      // Verify that the save button is enabled and receives the tap.
-      final saveButton = find.byIcon(Icons.check);
-      expect(saveButton, findsOneWidget);
-
-      await tester.tap(saveButton);
+      await tester.tap(find.byIcon(Icons.check));
       await tester.pumpAndSettle();
 
       expect(updatedValue, isNull);
@@ -182,14 +174,14 @@ void main() {
       expect(find.byIcon(Icons.close), findsNothing);
     });
 
-    testWidgets('sends valid input changes to the callback', (tester) async {
+    testWidgets('does not save while the user is typing', (tester) async {
       final updatedValues = <int?>[];
 
       await tester.pumpWidget(
         createTestWidget(
           CombatStatCard(
             title: 'Damage taken',
-            value: 6,
+            value: null,
             isAlwaysEditing: true,
             onValueChanged: updatedValues.add,
           ),
@@ -199,10 +191,41 @@ void main() {
       await tester.enterText(find.byType(TextField), '14');
       await tester.pump();
 
-      expect(updatedValues, contains(14));
+      expect(updatedValues, isEmpty);
     });
 
-    testWidgets('sends null when the input is cleared', (tester) async {
+    testWidgets('saves the value when focus is lost', (tester) async {
+      final updatedValues = <int?>[];
+
+      await tester.pumpWidget(
+        createTestWidget(
+          CombatStatCard(
+            title: 'Damage taken',
+            value: null,
+            isAlwaysEditing: true,
+            onValueChanged: updatedValues.add,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), '14');
+      await tester.pump();
+
+      expect(updatedValues, isEmpty);
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+
+      expect(updatedValues, [14]);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '',
+      );
+    });
+
+    testWidgets('sends null when the input is cleared and focus is lost', (
+      tester,
+    ) async {
       final updatedValues = <int?>[];
 
       await tester.pumpWidget(
@@ -219,7 +242,42 @@ void main() {
       await tester.enterText(find.byType(TextField), '');
       await tester.pump();
 
+      expect(updatedValues, isEmpty);
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+
       expect(updatedValues, [isNull]);
+    });
+
+    testWidgets('does not save the same value twice after Enter', (
+      tester,
+    ) async {
+      final updatedValues = <int?>[];
+
+      await tester.pumpWidget(
+        createTestWidget(
+          CombatStatCard(
+            title: 'Damage taken',
+            value: null,
+            isAlwaysEditing: true,
+            onValueChanged: updatedValues.add,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), '14');
+      await tester.pump();
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      expect(updatedValues, [14]);
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+
+      expect(updatedValues, [14]);
     });
   });
 
