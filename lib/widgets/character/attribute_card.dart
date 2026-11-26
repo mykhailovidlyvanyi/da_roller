@@ -1,16 +1,20 @@
-// /lib/widgets/character/attribute_card.dart
+//lib/widgets/character/attribute_card.dart
 
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 
+import '../../models/character_attribute.dart';
+
 class AttributeCard extends StatefulWidget {
-  final String name;
+  final CharacterAttribute attribute;
+  final ValueChanged<CharacterAttribute> onChanged;
   final ValueChanged<int?> onRollDice;
 
   const AttributeCard({
     super.key,
-    required this.name,
+    required this.attribute,
+    required this.onChanged,
     required this.onRollDice,
   });
 
@@ -20,9 +24,6 @@ class AttributeCard extends StatefulWidget {
 
 class _AttributeCardState extends State<AttributeCard> {
   final _valueController = TextEditingController();
-
-  int? _value;
-  String _focus = '';
 
   bool _isValueEditing = false;
   bool _isRolling = false;
@@ -47,7 +48,7 @@ class _AttributeCardState extends State<AttributeCard> {
       _isRolling = true;
     });
 
-    widget.onRollDice(_value);
+    widget.onRollDice(widget.attribute.value);
 
     _rollTimer = Timer(const Duration(milliseconds: 450), () {
       if (!mounted) return;
@@ -63,7 +64,7 @@ class _AttributeCardState extends State<AttributeCard> {
   void _startValueEditing() {
     if (_isValueEditing) return;
 
-    _valueController.text = _value?.toString() ?? '';
+    _valueController.text = widget.attribute.value.toString();
 
     setState(() {
       _isValueEditing = true;
@@ -75,8 +76,9 @@ class _AttributeCardState extends State<AttributeCard> {
 
     if (value == null) return;
 
+    widget.onChanged(widget.attribute.copyWith(value: value));
+
     setState(() {
-      _value = value;
       _isValueEditing = false;
     });
   }
@@ -90,73 +92,24 @@ class _AttributeCardState extends State<AttributeCard> {
   // Focus
 
   Future<void> _editFocus() async {
-    final controller = TextEditingController(text: _focus);
-
     final result = await showDialog<String>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF2A2A2A),
-          title: const Text(
-            'Edit Focus',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            maxLines: 3,
-            minLines: 1,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: InputDecoration(
-              hintText: 'Enter focus...',
-              hintStyle: const TextStyle(color: Colors.white38),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Colors.white24),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Colors.white54),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white54),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, controller.text.trim());
-              },
-              child: const Text(
-                'Save',
-                style: TextStyle(color: Colors.greenAccent),
-              ),
-            ),
-          ],
-        );
+      builder: (_) {
+        return FocusEditDialog(initialFocus: widget.attribute.focus);
       },
     );
-
-    controller.dispose();
 
     if (!mounted) return;
 
     if (result != null) {
-      setState(() {
-        _focus = result;
-      });
+      widget.onChanged(widget.attribute.copyWith(focus: result));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final attribute = widget.attribute;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
@@ -178,7 +131,7 @@ class _AttributeCardState extends State<AttributeCard> {
           SizedBox(
             width: double.infinity,
             child: Text(
-              widget.name,
+              attribute.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -235,7 +188,7 @@ class _AttributeCardState extends State<AttributeCard> {
                                       )
                                     : Center(
                                         child: Text(
-                                          _value?.toString() ?? '-',
+                                          attribute.value.toString(),
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 22,
@@ -313,11 +266,13 @@ class _AttributeCardState extends State<AttributeCard> {
                             ),
                           ),
                           Text(
-                            _focus.isEmpty ? 'Add focus...' : _focus,
+                            attribute.focus.isEmpty
+                                ? 'Add focus...'
+                                : attribute.focus,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: _focus.isEmpty
+                              color: attribute.focus.isEmpty
                                   ? Colors.white24
                                   : Colors.white,
                               fontSize: 10,
@@ -333,6 +288,80 @@ class _AttributeCardState extends State<AttributeCard> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Focus edit dialog
+
+class FocusEditDialog extends StatefulWidget {
+  final String initialFocus;
+
+  const FocusEditDialog({super.key, required this.initialFocus});
+
+  @override
+  State<FocusEditDialog> createState() => _FocusEditDialogState();
+}
+
+class _FocusEditDialogState extends State<FocusEditDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialFocus);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF2A2A2A),
+      title: const Text(
+        'Edit Focus',
+        style: TextStyle(color: Colors.white, fontSize: 18),
+      ),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLines: 3,
+        minLines: 1,
+        style: const TextStyle(color: Colors.white, fontSize: 14),
+        decoration: InputDecoration(
+          hintText: 'Enter focus...',
+          hintStyle: const TextStyle(color: Colors.white38),
+          enabledBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: Colors.white24),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: Colors.white54),
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context, _controller.text.trim());
+          },
+          child: const Text(
+            'Save',
+            style: TextStyle(color: Colors.greenAccent),
+          ),
+        ),
+      ],
     );
   }
 }
