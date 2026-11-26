@@ -24,15 +24,12 @@ void main() {
       expect(find.text('12'), findsOneWidget);
     });
 
-    testWidgets('opens editing mode on double tap', (tester) async {
+    testWidgets('opens editing mode on tap', (tester) async {
       await tester.pumpWidget(
         createTestWidget(const CombatStatCard(title: 'Defence', value: 12)),
       );
 
-      final target = find.text('12');
-      await tester.tap(target);
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(target);
+      await tester.tap(find.text('12'));
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsOneWidget);
@@ -42,7 +39,7 @@ void main() {
 
     testWidgets('saves the new value', (tester) async {
       int? updatedValue;
-      int currentValue = 12;
+      int? currentValue = 12;
 
       await tester.pumpWidget(
         createTestWidget(
@@ -64,8 +61,6 @@ void main() {
       );
 
       await tester.tap(find.text('Defence'));
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(find.text('Defence'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), '18');
@@ -74,6 +69,57 @@ void main() {
 
       expect(updatedValue, 18);
       expect(find.text('18'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets('saves null when the input is cleared', (tester) async {
+      int? updatedValue;
+      int? currentValue = 12;
+
+      await tester.pumpWidget(
+        createTestWidget(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CombatStatCard(
+                title: 'Defence',
+                value: currentValue,
+                onValueChanged: (value) {
+                  setState(() {
+                    currentValue = value;
+                    updatedValue = value;
+                  });
+                },
+              );
+            },
+          ),
+        ),
+      );
+
+      // Open editing mode.
+      await tester.tap(find.text('Defence'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextField), findsOneWidget);
+
+      // Clear the input.
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump();
+
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '',
+      );
+
+      // Verify that the save button is enabled and receives the tap.
+      final saveButton = find.byIcon(Icons.check);
+      expect(saveButton, findsOneWidget);
+
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle();
+
+      expect(updatedValue, isNull);
+      expect(currentValue, isNull);
+      expect(find.text('-'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
     });
 
@@ -90,10 +136,7 @@ void main() {
         ),
       );
 
-      final target = find.text('12');
-      await tester.tap(target);
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(target);
+      await tester.tap(find.text('12'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), '18');
@@ -112,10 +155,7 @@ void main() {
         ),
       );
 
-      final target = find.text('15');
-      await tester.tap(target);
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(target);
+      await tester.tap(find.text('15'));
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsNothing);
@@ -143,7 +183,7 @@ void main() {
     });
 
     testWidgets('sends valid input changes to the callback', (tester) async {
-      final updatedValues = <int>[];
+      final updatedValues = <int?>[];
 
       await tester.pumpWidget(
         createTestWidget(
@@ -162,8 +202,8 @@ void main() {
       expect(updatedValues, contains(14));
     });
 
-    testWidgets('does not send an empty value to the callback', (tester) async {
-      final updatedValues = <int>[];
+    testWidgets('sends null when the input is cleared', (tester) async {
+      final updatedValues = <int?>[];
 
       await tester.pumpWidget(
         createTestWidget(
@@ -179,7 +219,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '');
       await tester.pump();
 
-      expect(updatedValues, isEmpty);
+      expect(updatedValues, [isNull]);
     });
   });
 

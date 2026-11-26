@@ -1,7 +1,8 @@
-//lib/widgets/character/combat_section_test.dart
+//lib/widgets/character/combat_section.dart
 
 import 'package:material_ui/material_ui.dart';
 
+import '../../models/character_combat.dart';
 import 'combat_column.dart';
 import 'combat_stat_card.dart';
 import 'section_title.dart';
@@ -14,29 +15,13 @@ class CombatSection extends StatefulWidget {
 }
 
 class _CombatSectionState extends State<CombatSection> {
-  int defence = 12;
-  int shieldBonus = 2;
-  bool shieldActive = false;
-
-  int armor = 5;
-  int armorPenalty = -2;
-
-  int speed = 30;
-
-  int maxHealth = 30;
-  int currentHealth = 24;
-
-  int maxMana = 20;
-  int currentMana = 14;
-
-  int damageTaken = 6;
-  bool includeArmor = true;
+  final CharacterCombat _combat = CharacterCombat();
 
   Widget _stat({
     Key? key,
     required String title,
-    required int value,
-    required ValueChanged<int> onChanged,
+    required int? value,
+    required ValueChanged<int?> onChanged,
     bool editable = true,
   }) {
     return CombatStatCard(
@@ -55,7 +40,6 @@ class _CombatSectionState extends State<CombatSection> {
       children: [
         const SectionTitle(title: 'COMBAT', subtitle: 'Combat statistics'),
         const SizedBox(height: 16),
-
         Wrap(
           spacing: 12,
           runSpacing: 16,
@@ -65,112 +49,136 @@ class _CombatSectionState extends State<CombatSection> {
               children: [
                 _stat(
                   title: 'Defence',
-                  value: defence,
-                  onChanged: (v) => setState(() => defence = v),
+                  value: _combat.defence,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _combat.defence = v);
+                    }
+                  },
                 ),
                 _stat(
                   title: 'Shield bonus',
-                  value: shieldBonus,
-                  onChanged: (v) => setState(() => shieldBonus = v),
+                  value: _combat.shieldBonus,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _combat.shieldBonus = v);
+                    }
+                  },
                 ),
                 CombatStatCard(
                   title: 'Shield active',
                   isToggle: true,
-                  toggleValue: shieldActive,
-                  onToggleChanged: (v) => setState(() => shieldActive = v),
+                  toggleValue: _combat.shieldActive,
+                  onToggleChanged: (v) =>
+                      setState(() => _combat.shieldActive = v),
                 ),
               ],
             ),
-
             CombatColumn(
               title: 'ARMOR',
               children: [
                 _stat(
                   title: 'Armor',
-                  value: armor,
-                  onChanged: (v) => setState(() => armor = v),
+                  value: _combat.armor,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _combat.armor = v);
+                    }
+                  },
                 ),
                 _stat(
                   title: 'Armor penalty',
-                  value: armorPenalty,
-                  onChanged: (v) => setState(() => armorPenalty = v),
+                  value: _combat.armorPenalty,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _combat.armorPenalty = v);
+                    }
+                  },
                 ),
               ],
             ),
-
             CombatColumn(
               title: 'MOVEMENT',
               children: [
                 _stat(
                   key: const ValueKey('combat_speed'),
                   title: 'Speed',
-                  value: speed,
-                  onChanged: (v) => setState(() => speed = v),
+                  value: _combat.speed,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _combat.speed = v);
+                    }
+                  },
                 ),
                 _stat(
                   title: 'Charge',
-                  value: speed ~/ 2,
+                  value: _combat.charge,
                   onChanged: (_) {},
                   editable: false,
                 ),
                 _stat(
                   title: 'Run',
-                  value: speed * 2,
+                  value: _combat.run,
                   onChanged: (_) {},
                   editable: false,
                 ),
               ],
             ),
-
             CombatColumn(
               title: 'HEALTH',
               children: [
                 _stat(
                   title: 'Max health',
-                  value: maxHealth,
-                  onChanged: (v) => setState(() => maxHealth = v),
+                  value: _combat.maxHealth,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _combat.maxHealth = v);
+                    }
+                  },
                 ),
                 _stat(
                   title: 'Current health',
-                  value: currentHealth,
-                  onChanged: (v) => setState(() => currentHealth = v),
+                  value: _combat.currentHealth,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _combat.currentHealth = v);
+                    }
+                  },
                 ),
               ],
             ),
-
             CombatColumn(
               title: 'MANA',
               children: [
                 _stat(
                   title: 'Max mana',
-                  value: maxMana,
-                  onChanged: (v) => setState(() => maxMana = v),
+                  value: _combat.maxMana,
+                  onChanged: (v) => setState(() => _combat.maxMana = v),
                 ),
                 _stat(
                   title: 'Current mana',
-                  value: currentMana,
-                  onChanged: (v) => setState(() => currentMana = v),
+                  value: _combat.currentMana,
+                  onChanged: (v) => setState(() => _combat.currentMana = v),
                 ),
               ],
             ),
-
             CombatColumn(
               title: 'DAMAGE',
               children: [
                 CombatStatCard(
                   title: 'Damage taken',
-                  value: damageTaken,
+                  value: _combat.damageTaken,
                   isAlwaysEditing: true,
                   onValueChanged: (v) {
-                    setState(() => damageTaken = v);
+                    setState(() => _combat.damageTaken = v);
                   },
                 ),
                 CombatStatCard(
                   title: 'Include armor',
                   isToggle: true,
-                  toggleValue: includeArmor,
+                  toggleValue: _combat.includeArmor,
                   onToggleChanged: (v) {
-                    setState(() => includeArmor = v);
+                    setState(() => _combat.includeArmor = v);
                   },
                 ),
               ],

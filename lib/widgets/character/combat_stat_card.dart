@@ -1,11 +1,11 @@
-//lib/widgets/character/combat_stat_card_test.dart
+//lib/widgets/character/combat_stat_card.dart
 
 import 'package:material_ui/material_ui.dart';
 
 class CombatStatCard extends StatefulWidget {
   final String title;
   final int? value;
-  final ValueChanged<int>? onValueChanged;
+  final ValueChanged<int?>? onValueChanged;
   final bool isEditable;
   final bool isAlwaysEditing;
 
@@ -80,9 +80,10 @@ class _CombatStatCardState extends State<CombatStatCard> {
   }
 
   void _saveValue() {
-    final value = int.tryParse(_valueController.text.trim());
+    final text = _valueController.text.trim();
+    final int? value = text.isEmpty ? null : int.tryParse(text);
 
-    if (value == null) return;
+    if (text.isNotEmpty && value == null) return;
 
     widget.onValueChanged?.call(value);
 
@@ -98,11 +99,13 @@ class _CombatStatCardState extends State<CombatStatCard> {
   }
 
   void _onAlwaysEditingChanged(String text) {
-    final value = int.tryParse(text.trim());
+    final trimmedText = text.trim();
 
-    if (value != null) {
-      widget.onValueChanged?.call(value);
-    }
+    final int? value = trimmedText.isEmpty ? null : int.tryParse(trimmedText);
+
+    if (trimmedText.isNotEmpty && value == null) return;
+
+    widget.onValueChanged?.call(value);
   }
 
   @override
@@ -133,7 +136,7 @@ class _CombatStatCardState extends State<CombatStatCard> {
             Switch(value: widget.toggleValue, onChanged: widget.onToggleChanged)
           else
             SizedBox(
-              width: 52,
+              width: _showTextField && !widget.isAlwaysEditing ? 100 : 52,
               child: _showTextField
                   ? Column(
                       mainAxisSize: MainAxisSize.min,
@@ -169,20 +172,30 @@ class _CombatStatCardState extends State<CombatStatCard> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              GestureDetector(
-                                onTap: _saveValue,
-                                child: const Icon(
+                              IconButton(
+                                onPressed: _saveValue,
+                                icon: const Icon(
                                   Icons.check,
                                   color: Colors.greenAccent,
                                   size: 14,
                                 ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 24,
+                                  height: 24,
+                                ),
                               ),
-                              GestureDetector(
-                                onTap: _cancelEditing,
-                                child: const Icon(
+                              IconButton(
+                                onPressed: _cancelEditing,
+                                icon: const Icon(
                                   Icons.close,
                                   color: Colors.white54,
                                   size: 14,
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 24,
+                                  height: 24,
                                 ),
                               ),
                             ],
@@ -209,7 +222,7 @@ class _CombatStatCardState extends State<CombatStatCard> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onDoubleTap: _startEditing,
+      onTap: _startEditing,
       child: card,
     );
   }
