@@ -16,11 +16,13 @@ import '../common/editable_item_row.dart';
 class AmmunitionStorageSection extends StatefulWidget {
   final AmmunitionStorage storage;
   final ValueChanged<AmmunitionStorage> onStorageChanged;
+  final bool expandToFill;
 
   const AmmunitionStorageSection({
     super.key,
     required this.storage,
     required this.onStorageChanged,
+    this.expandToFill = true,
   });
 
   @override
@@ -244,6 +246,34 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
     );
   }
 
+  Widget _addAmmunitionButton(bool hasAmmunition) {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFF383838))),
+      ),
+      child: hasAmmunition
+          ? TextButton.icon(
+              onPressed: () => _editAmmunition(),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add Ammunition'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.greenAccent,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            )
+          : Center(
+              child: TextButton.icon(
+                onPressed: () => _editAmmunition(),
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text('Add Ammunition'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.greenAccent,
+                ),
+              ),
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasAmmunition = widget.storage.stacks.isNotEmpty;
@@ -281,33 +311,10 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
               ),
             ),
           ],
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFF383838))),
-              ),
-              child: hasAmmunition
-                  ? TextButton.icon(
-                      onPressed: () => _editAmmunition(),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add Ammunition'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.greenAccent,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    )
-                  : Center(
-                      child: TextButton.icon(
-                        onPressed: () => _editAmmunition(),
-                        icon: const Icon(Icons.add, size: 20),
-                        label: const Text('Add Ammunition'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.greenAccent,
-                        ),
-                      ),
-                    ),
-            ),
-          ),
+          if (widget.expandToFill)
+            Expanded(child: _addAmmunitionButton(hasAmmunition))
+          else
+            _addAmmunitionButton(hasAmmunition),
         ],
       ),
     );

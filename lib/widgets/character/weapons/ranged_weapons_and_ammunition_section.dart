@@ -31,24 +31,36 @@ class _RangedWeaponsAndAmmunitionSectionState
   Widget build(BuildContext context) {
     final hasAmmunition = _storage.stacks.isNotEmpty;
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: hasAmmunition ? 7 : 9,
-            child: RangedWeaponsSection(onRoll: widget.onRoll),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 700;
+
+        final rangedWeapons = RangedWeaponsSection(onRoll: widget.onRoll);
+
+        final ammunition = AmmunitionStorageSection(
+          storage: _storage,
+          onStorageChanged: _updateStorage,
+          expandToFill: !isNarrow,
+        );
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [rangedWeapons, const SizedBox(height: 8), ammunition],
+          );
+        }
+
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(flex: hasAmmunition ? 7 : 9, child: rangedWeapons),
+              const SizedBox(width: 8),
+              Expanded(flex: hasAmmunition ? 3 : 1, child: ammunition),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: hasAmmunition ? 3 : 1,
-            child: AmmunitionStorageSection(
-              storage: _storage,
-              onStorageChanged: _updateStorage,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
