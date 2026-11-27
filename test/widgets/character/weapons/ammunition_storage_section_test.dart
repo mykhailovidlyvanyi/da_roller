@@ -6,6 +6,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:da_roller/models/ammunition/ammunition_storage.dart';
 import 'package:da_roller/widgets/character/weapons/ammunition_storage_section.dart';
 
+import 'package:da_roller/models/weapons/weapon_group.dart';
+
 class AmmunitionTestHost extends StatefulWidget {
   const AmmunitionTestHost({super.key});
 
@@ -72,6 +74,20 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> selectWeaponGroup(WidgetTester tester, String group) async {
+    final dropdown = find
+        .byType(DropdownButtonFormField<WeaponGroup>)
+        .hitTestable()
+        .last;
+
+    await tester.ensureVisible(dropdown);
+    await tester.tap(dropdown);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(group).last);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> addAmmunition(
     WidgetTester tester, {
     String name = 'Arrows',
@@ -84,8 +100,7 @@ void main() {
     await enterField(tester, 'Quantity', quantity);
 
     if (selectBows) {
-      await tester.tap(find.text('Bows'));
-      await tester.pumpAndSettle();
+      await selectWeaponGroup(tester, 'Bows');
     }
 
     await tester.tap(find.text('Save'));
@@ -109,7 +124,7 @@ void main() {
     await openAddAmmunitionDialog(tester);
 
     expect(find.text('Add Ammunition'), findsWidgets);
-    expect(find.text('Compatible Weapon Groups'), findsOneWidget);
+    expect(find.text('Compatible Weapon Group'), findsAtLeastNWidgets(1));
     expect(field('Name'), findsOneWidget);
     expect(field('Quantity'), findsOneWidget);
     expect(field('Ammunition Details'), findsOneWidget);
@@ -210,7 +225,7 @@ void main() {
     expect(find.text('Add Ammunition'), findsOneWidget);
   });
 
-  testWidgets('allows selecting multiple compatible weapon groups', (
+  testWidgets('allows selecting only one compatible weapon group', (
     tester,
   ) async {
     await setTestScreenSize(tester);
@@ -221,15 +236,13 @@ void main() {
     await enterField(tester, 'Name', 'Special Bolts');
     await enterField(tester, 'Quantity', '12');
 
-    await tester.tap(find.text('Bows'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Light Blades'));
-    await tester.pumpAndSettle();
+    await selectWeaponGroup(tester, 'Bows');
+    await selectWeaponGroup(tester, 'Light Blades');
 
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Bows, Light Blades'), findsOneWidget);
+    expect(find.text('Light Blades'), findsOneWidget);
+    expect(find.text('Bows'), findsNothing);
   });
 }

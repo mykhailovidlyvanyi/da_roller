@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../models/character/character_combat.dart';
 import 'combat_column.dart';
 import 'combat_stat_card.dart';
-import '../shared/section_title.dart';
+import '../common/section_title.dart';
 
 class CombatSection extends StatefulWidget {
   final int dexterity;

@@ -9,6 +9,12 @@ import '../../../models/weapons/reload_action.dart';
 
 import '../../../models/dice/dice_roll.dart';
 
+import '../common/form_dropdown.dart';
+import '../common/form_input.dart';
+import '../common/editable_value_cell.dart';
+import '../common/header_cell.dart';
+import '../common/editable_item_row.dart';
+
 class RangedWeaponsSection extends StatefulWidget {
   final ValueChanged<DiceRoll> onRoll;
 
@@ -22,7 +28,6 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
   final List<RangedWeapon> _weapons = [];
 
   static const double _weaponRowHeight = 80;
-  static const double _detailsHeight = 20;
 
   Future<void> _editWeapon({int? index}) async {
     final existingWeapon = index == null ? null : _weapons[index];
@@ -87,22 +92,23 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: _buildInput(
+                            child: FormInput(
                               controller: nameController,
                               label: 'Name',
-                              required: true,
+                              isRequired: true,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildInput(
+                            child: FormInput(
                               controller: attackBonusController,
                               label: 'Attack Bonus',
                               keyboardType:
                                   const TextInputType.numberWithOptions(
                                     signed: true,
                                   ),
-                              required: true,
+                              isRequired: true,
+                              isInteger: true,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -118,19 +124,20 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                     else
                       Column(
                         children: [
-                          _buildInput(
+                          FormInput(
                             controller: nameController,
                             label: 'Name',
-                            required: true,
+                            isRequired: true,
                           ),
                           const SizedBox(height: 8),
-                          _buildInput(
+                          FormInput(
                             controller: attackBonusController,
                             label: 'Attack Bonus',
                             keyboardType: const TextInputType.numberWithOptions(
                               signed: true,
                             ),
-                            required: true,
+                            isRequired: true,
+                            isInteger: true,
                           ),
                           const SizedBox(height: 8),
                           _buildDamageInputs(
@@ -147,27 +154,29 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: _buildInput(
+                            child: FormInput(
                               controller: shortRangeController,
                               label: 'Short Range',
                               keyboardType: TextInputType.number,
-                              required: true,
+                              isRequired: true,
+                              isInteger: true,
                               minValue: 0,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildInput(
+                            child: FormInput(
                               controller: longRangeController,
                               label: 'Long Range',
                               keyboardType: TextInputType.number,
-                              required: true,
+                              isRequired: true,
+                              isInteger: true,
                               minValue: 0,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildDropdown<ReloadAction>(
+                            child: FormDropdown<ReloadAction>(
                               value: selectedReload,
                               label: 'Reload',
                               items: ReloadAction.values,
@@ -185,23 +194,25 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                     else
                       Column(
                         children: [
-                          _buildInput(
+                          FormInput(
                             controller: shortRangeController,
                             label: 'Short Range',
                             keyboardType: TextInputType.number,
-                            required: true,
+                            isRequired: true,
+                            isInteger: true,
                             minValue: 0,
                           ),
                           const SizedBox(height: 8),
-                          _buildInput(
+                          FormInput(
                             controller: longRangeController,
                             label: 'Long Range',
                             keyboardType: TextInputType.number,
-                            required: true,
+                            isRequired: true,
+                            isInteger: true,
                             minValue: 0,
                           ),
                           const SizedBox(height: 8),
-                          _buildDropdown<ReloadAction>(
+                          FormDropdown<ReloadAction>(
                             value: selectedReload,
                             label: 'Reload',
                             items: ReloadAction.values,
@@ -223,7 +234,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: _buildDropdown<WeaponGroup>(
+                            child: FormDropdown<WeaponGroup>(
                               value: selectedWeaponGroup,
                               label: 'Weapon Group',
                               items: WeaponGroup.rangedGroups,
@@ -237,7 +248,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildDropdown<WeaponAttribute>(
+                            child: FormDropdown<WeaponAttribute>(
                               value: selectedMainAttribute,
                               label: 'Main Attribute',
                               items: WeaponAttribute.values,
@@ -254,7 +265,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                     else
                       Column(
                         children: [
-                          _buildDropdown<WeaponGroup>(
+                          FormDropdown<WeaponGroup>(
                             value: selectedWeaponGroup,
                             label: 'Weapon Group',
                             items: WeaponGroup.rangedGroups,
@@ -266,7 +277,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                             },
                           ),
                           const SizedBox(height: 8),
-                          _buildDropdown<WeaponAttribute>(
+                          FormDropdown<WeaponAttribute>(
                             value: selectedMainAttribute,
                             label: 'Main Attribute',
                             items: WeaponAttribute.values,
@@ -286,19 +297,21 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildInput(
+                            child: FormInput(
                               controller: minStrengthController,
                               label: 'Min Strength',
                               keyboardType: TextInputType.number,
+                              isInteger: true,
                               minValue: 0,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildInput(
+                            child: FormInput(
                               controller: costController,
                               label: 'Cost',
                               keyboardType: TextInputType.number,
+                              isInteger: true,
                               minValue: 0,
                             ),
                           ),
@@ -307,17 +320,19 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                     else
                       Column(
                         children: [
-                          _buildInput(
+                          FormInput(
                             controller: minStrengthController,
                             label: 'Min Strength',
                             keyboardType: TextInputType.number,
+                            isInteger: true,
                             minValue: 0,
                           ),
                           const SizedBox(height: 8),
-                          _buildInput(
+                          FormInput(
                             controller: costController,
                             label: 'Cost',
                             keyboardType: TextInputType.number,
+                            isInteger: true,
                             minValue: 0,
                           ),
                         ],
@@ -325,7 +340,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
 
                     const SizedBox(height: 8),
 
-                    _buildInput(
+                    FormInput(
                       controller: detailsController,
                       label: 'Weapon Details',
                       maxLines: 1,
@@ -439,39 +454,6 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
     }
   }
 
-  Widget _buildDropdown<T extends Enum>({
-    required T? value,
-    required String label,
-    required List<T> items,
-    required String Function(T) itemLabel,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
-      isExpanded: true,
-      dropdownColor: const Color(0xFF2A2A2A),
-      style: const TextStyle(color: Colors.white, fontSize: 14),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white54),
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      hint: const Text('Select', style: TextStyle(color: Colors.white30)),
-      iconEnabledColor: Colors.white54,
-      items: items.map((item) {
-        return DropdownMenuItem<T>(value: item, child: Text(itemLabel(item)));
-      }).toList(),
-      onChanged: onChanged,
-    );
-  }
-
   Widget _buildDamageInputs(
     TextEditingController diceController,
     TextEditingController modifierController,
@@ -480,11 +462,12 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: _buildInput(
+          child: FormInput(
             controller: diceController,
             label: 'Damage',
             keyboardType: TextInputType.number,
-            required: true,
+            isRequired: true,
+            isInteger: true,
             minValue: 1,
           ),
         ),
@@ -500,76 +483,15 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
           ),
         ),
         Expanded(
-          child: _buildInput(
+          child: FormInput(
             controller: modifierController,
             label: 'Damage',
             keyboardType: const TextInputType.numberWithOptions(signed: true),
-            required: true,
+            isRequired: true,
+            isInteger: true,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildInput({
-    required TextEditingController controller,
-    required String label,
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    bool required = false,
-    int? minValue,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white54),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      validator: (value) {
-        final text = value?.trim() ?? '';
-
-        if (required && text.isEmpty) {
-          return 'This field is required';
-        }
-
-        if (keyboardType == TextInputType.text) {
-          return null;
-        }
-
-        if (text.isEmpty) {
-          return null;
-        }
-
-        final number = int.tryParse(text);
-        if (number == null) {
-          return 'Enter a valid number';
-        }
-
-        if (minValue != null && number < minValue) {
-          return 'Minimum value is $minValue';
-        }
-
-        return null;
-      },
     );
   }
 
@@ -579,195 +501,116 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
     });
   }
 
-  Widget _headerCell(String text, {required int flex}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.white54,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _valueCell({
-    required String value,
-    required int flex,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      flex: flex,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: Text(
-            value,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _weaponRow(int index) {
     final weapon = _weapons[index];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFF383838))),
-      ),
-      child: Column(
-        children: [
-          Row(
+    return EditableItemRow(
+      cells: [
+        EditableValueCell(
+          value: weapon.name,
+          flex: 3,
+          onTap: () => _editWeapon(index: index),
+        ),
+        EditableValueCell(
+          value: weapon.attackBonus >= 0
+              ? '+${weapon.attackBonus}'
+              : weapon.attackBonus.toString(),
+          flex: 1,
+          onTap: () => _editWeapon(index: index),
+        ),
+        EditableValueCell(
+          value:
+              '${weapon.damageDice}d6'
+              '${weapon.damageModifier == 0
+                  ? ''
+                  : weapon.damageModifier > 0
+                  ? ' + ${weapon.damageModifier}'
+                  : ' - ${weapon.damageModifier.abs()}'}',
+          flex: 2,
+          onTap: () => _editWeapon(index: index),
+        ),
+        EditableValueCell(
+          value: '${weapon.shortRange}/${weapon.longRange}',
+          flex: 2,
+          onTap: () => _editWeapon(index: index),
+        ),
+        EditableValueCell(
+          value: _reloadActionLabel(weapon.reload),
+          flex: 2,
+          onTap: () => _editWeapon(index: index),
+        ),
+        SizedBox(
+          width: 88,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _valueCell(
-                value: weapon.name,
-                flex: 3,
-                onTap: () => _editWeapon(index: index),
-              ),
-              _valueCell(
-                value: weapon.attackBonus >= 0
-                    ? '+${weapon.attackBonus}'
-                    : weapon.attackBonus.toString(),
-                flex: 1,
-                onTap: () => _editWeapon(index: index),
-              ),
-              _valueCell(
-                value:
-                    '${weapon.damageDice}d6'
-                    '${weapon.damageModifier == 0
-                        ? ''
-                        : weapon.damageModifier > 0
-                        ? ' + ${weapon.damageModifier}'
-                        : ' - ${weapon.damageModifier.abs()}'}',
-                flex: 2,
-                onTap: () => _editWeapon(index: index),
-              ),
-              _valueCell(
-                value: '${weapon.shortRange}/${weapon.longRange}',
-                flex: 2,
-                onTap: () => _editWeapon(index: index),
-              ),
-              _valueCell(
-                value: _reloadActionLabel(weapon.reload),
-                flex: 2,
-                onTap: () => _editWeapon(index: index),
-              ),
-              SizedBox(
-                width: 88,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints.tightFor(
-                        width: 36,
-                        height: 36,
-                      ),
-                      tooltip: 'Roll attack',
-                      onPressed: () {
-                        widget.onRoll(
-                          DiceRoll(
-                            type: DiceRollType.attack,
-                            diceCount: 3,
-                            modifier: weapon.attackBonus,
-                            modifierLabel: 'Attack Bonus',
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.sports_martial_arts,
-                        color: Colors.orangeAccent,
-                        size: 19,
-                      ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 36,
+                  height: 36,
+                ),
+                tooltip: 'Roll attack',
+                onPressed: () {
+                  widget.onRoll(
+                    DiceRoll(
+                      type: DiceRollType.attack,
+                      diceCount: 3,
+                      modifier: weapon.attackBonus,
+                      modifierLabel: 'Attack Bonus',
                     ),
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints.tightFor(
-                        width: 36,
-                        height: 36,
-                      ),
-                      tooltip: 'Roll damage',
-                      onPressed: () {
-                        widget.onRoll(
-                          DiceRoll(
-                            type: DiceRollType.damage,
-                            diceCount: weapon.damageDice,
-                            modifier: weapon.damageModifier,
-                            modifierLabel: 'Damage Modifier',
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.heart_broken,
-                        color: Colors.redAccent,
-                        size: 18,
-                      ),
-                    ),
-                  ],
+                  );
+                },
+                icon: const Icon(
+                  Icons.sports_martial_arts,
+                  color: Colors.orangeAccent,
+                  size: 19,
                 ),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints.tightFor(
-                  width: 28,
+                  width: 36,
                   height: 36,
                 ),
-                tooltip: 'Remove weapon',
-                onPressed: () => _removeWeapon(index),
+                tooltip: 'Roll damage',
+                onPressed: () {
+                  widget.onRoll(
+                    DiceRoll(
+                      type: DiceRollType.damage,
+                      diceCount: weapon.damageDice,
+                      modifier: weapon.damageModifier,
+                      modifierLabel: 'Damage Modifier',
+                    ),
+                  );
+                },
                 icon: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.white38,
-                  size: 17,
+                  Icons.heart_broken,
+                  color: Colors.redAccent,
+                  size: 18,
                 ),
               ),
             ],
           ),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => _editWeapon(index: index),
-            child: Container(
-              width: double.infinity,
-              height: _detailsHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFF303030))),
-              ),
-              child: SingleChildScrollView(
-                child: Text(
-                  weapon.details.isEmpty
-                      ? 'Add weapon details...'
-                      : weapon.details,
-                  style: TextStyle(
-                    color: weapon.details.isEmpty
-                        ? Colors.white30
-                        : Colors.white60,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ),
+        ),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 28, height: 36),
+          tooltip: 'Remove weapon',
+          onPressed: () => _removeWeapon(index),
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Colors.white38,
+            size: 17,
           ),
-        ],
-      ),
+        ),
+      ],
+      details: weapon.details,
+      emptyDetailsText: 'Add weapon details...',
+      onDetailsTap: () => _editWeapon(index: index),
     );
   }
 
@@ -786,11 +629,11 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Row(
               children: [
-                _headerCell('RANGED WEAPONS', flex: 3),
-                _headerCell('ATTACK', flex: 1),
-                _headerCell('DAMAGE', flex: 2),
-                _headerCell('RANGE', flex: 2),
-                _headerCell('RELOAD', flex: 2),
+                HeaderCell(text: 'RANGED WEAPONS', flex: 3),
+                HeaderCell(text: 'ATTACK', flex: 1),
+                HeaderCell(text: 'DAMAGE', flex: 2),
+                HeaderCell(text: 'RANGE', flex: 2),
+                HeaderCell(text: 'RELOAD', flex: 2),
                 const SizedBox(width: 116),
               ],
             ),

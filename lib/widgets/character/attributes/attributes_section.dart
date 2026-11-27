@@ -7,7 +7,7 @@ import '../../../models/dice/dice_roll.dart';
 
 import 'attribute_card.dart';
 
-import '../shared/section_title.dart';
+import '../common/section_title.dart';
 
 class AttributesSection extends StatefulWidget {
   final ValueChanged<DiceRoll> onRoll;

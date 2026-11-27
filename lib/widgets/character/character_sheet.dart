@@ -14,8 +14,8 @@ import 'combat/combat_section.dart';
 import 'weapons/melee_weapons_section.dart';
 import 'weapons/ranged_weapons_and_ammunition_section.dart';
 
-import 'shared/section_title.dart';
-import 'shared/placeholder_section.dart';
+import 'common/section_title.dart';
+import 'common/placeholder_section.dart';
 
 class CharacterSheet extends StatefulWidget {
   final ValueChanged<DiceRoll> onRoll;

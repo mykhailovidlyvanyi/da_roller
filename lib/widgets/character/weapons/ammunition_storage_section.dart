@@ -7,6 +7,12 @@ import '../../../models/ammunition/ammunition_stack.dart';
 import '../../../models/ammunition/ammunition_storage.dart';
 import '../../../models/weapons/weapon_group.dart';
 
+import '../common/form_dropdown.dart';
+import '../common/form_input.dart';
+import '../common/editable_value_cell.dart';
+import '../common/header_cell.dart';
+import '../common/editable_item_row.dart';
+
 class AmmunitionStorageSection extends StatefulWidget {
   final AmmunitionStorage storage;
   final ValueChanged<AmmunitionStorage> onStorageChanged;
@@ -24,7 +30,6 @@ class AmmunitionStorageSection extends StatefulWidget {
 
 class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
   static const double _ammunitionRowHeight = 80;
-  static const double _detailsHeight = 20;
 
   Future<void> _editAmmunition({int? index}) async {
     final existingStack = index == null ? null : widget.storage.stacks[index];
@@ -40,9 +45,8 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
       text: existingAmmunition?.details ?? '',
     );
 
-    final selectedGroups = <WeaponGroup>{
-      ...?existingAmmunition?.compatibleWeaponGroups,
-    };
+    WeaponGroup? selectedGroup =
+        existingAmmunition?.compatibleWeaponGroups.firstOrNull;
 
     final formKey = GlobalKey<FormState>();
 
@@ -66,17 +70,18 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildInput(
+                    FormInput(
                       controller: nameController,
                       label: 'Name',
-                      required: true,
+                      isRequired: true,
                     ),
                     const SizedBox(height: 12),
-                    _buildInput(
+                    FormInput(
                       controller: quantityController,
                       label: 'Quantity',
                       keyboardType: TextInputType.number,
-                      required: true,
+                      isRequired: true,
+                      isInteger: true,
                       minValue: 0,
                     ),
                     const SizedBox(height: 16),
@@ -89,34 +94,19 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    ...WeaponGroup.rangedGroups.map(
-                      (group) => CheckboxListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: Colors.greenAccent,
-                        checkColor: Colors.black,
-                        title: Text(
-                          _weaponGroupLabel(group),
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                          ),
-                        ),
-                        value: selectedGroups.contains(group),
-                        onChanged: (checked) {
-                          setDialogState(() {
-                            if (checked == true) {
-                              selectedGroups.add(group);
-                            } else {
-                              selectedGroups.remove(group);
-                            }
-                          });
-                        },
-                      ),
+                    FormDropdown<WeaponGroup>(
+                      label: 'Compatible Weapon Group',
+                      value: selectedGroup,
+                      items: WeaponGroup.rangedGroups,
+                      itemLabel: _weaponGroupLabel,
+                      onChanged: (group) {
+                        setDialogState(() {
+                          selectedGroup = group;
+                        });
+                      },
                     ),
                     const SizedBox(height: 8),
-                    _buildInput(
+                    FormInput(
                       controller: detailsController,
                       label: 'Ammunition Details',
                       maxLines: 2,
@@ -153,7 +143,7 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
       final ammunition = Ammunition(
         name: nameController.text.trim(),
         details: detailsController.text.trim(),
-        compatibleWeaponGroups: selectedGroups.toList(),
+        compatibleWeaponGroups: selectedGroup == null ? [] : [selectedGroup!],
       );
 
       final stack = AmmunitionStack(
@@ -200,113 +190,10 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
     }
   }
 
-  Widget _buildInput({
-    required TextEditingController controller,
-    required String label,
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    bool required = false,
-    int? minValue,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white54),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.redAccent),
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      validator: (value) {
-        final text = value?.trim() ?? '';
-
-        if (required && text.isEmpty) {
-          return 'This field is required';
-        }
-
-        if (keyboardType == TextInputType.text || text.isEmpty) {
-          return null;
-        }
-
-        final number = int.tryParse(text);
-
-        if (number == null) {
-          return 'Enter a valid number';
-        }
-
-        if (minValue != null && number < minValue) {
-          return 'Minimum value is $minValue';
-        }
-
-        return null;
-      },
-    );
-  }
-
   void _removeAmmunition(int index) {
     final updatedStacks = [...widget.storage.stacks]..removeAt(index);
 
     widget.onStorageChanged(AmmunitionStorage(stacks: updatedStacks));
-  }
-
-  Widget _headerCell(String text, {required int flex}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.white54,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _valueCell({
-    required String value,
-    required int flex,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      flex: flex,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: Text(
-            value,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   String _compatibleGroupsLabel(Ammunition ammunition) {
@@ -321,74 +208,39 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
     final stack = widget.storage.stacks[index];
     final ammunition = stack.ammunition;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFF383838))),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              _valueCell(
-                value: ammunition.name,
-                flex: 3,
-                onTap: () => _editAmmunition(index: index),
-              ),
-              _valueCell(
-                value: stack.quantity.toString(),
-                flex: 1,
-                onTap: () => _editAmmunition(index: index),
-              ),
-              _valueCell(
-                value: _compatibleGroupsLabel(ammunition),
-                flex: 3,
-                onTap: () => _editAmmunition(index: index),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(
-                  width: 28,
-                  height: 36,
-                ),
-                tooltip: 'Remove ammunition',
-                onPressed: () => _removeAmmunition(index),
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.white38,
-                  size: 17,
-                ),
-              ),
-            ],
+    return EditableItemRow(
+      cells: [
+        EditableValueCell(
+          value: ammunition.name,
+          flex: 3,
+          onTap: () => _editAmmunition(index: index),
+        ),
+        EditableValueCell(
+          value: stack.quantity.toString(),
+          flex: 1,
+          onTap: () => _editAmmunition(index: index),
+        ),
+        EditableValueCell(
+          value: _compatibleGroupsLabel(ammunition),
+          flex: 3,
+          onTap: () => _editAmmunition(index: index),
+        ),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 28, height: 36),
+          tooltip: 'Remove ammunition',
+          onPressed: () => _removeAmmunition(index),
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Colors.white38,
+            size: 17,
           ),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => _editAmmunition(index: index),
-            child: Container(
-              width: double.infinity,
-              height: _detailsHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFF303030))),
-              ),
-              child: SingleChildScrollView(
-                child: Text(
-                  ammunition.details.isEmpty
-                      ? 'Add ammunition details...'
-                      : ammunition.details,
-                  style: TextStyle(
-                    color: ammunition.details.isEmpty
-                        ? Colors.white30
-                        : Colors.white60,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
+      details: ammunition.details,
+      emptyDetailsText: 'Add ammunition details...',
+      onDetailsTap: () => _editAmmunition(index: index),
     );
   }
 
@@ -413,9 +265,9 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Row(
                 children: [
-                  _headerCell('AMMUNITION', flex: 3),
-                  _headerCell('QTY', flex: 1),
-                  _headerCell('COMPATIBLE GROUPS', flex: 3),
+                  HeaderCell(text: 'AMMUNITION', flex: 3),
+                  HeaderCell(text: 'QTY', flex: 1),
+                  HeaderCell(text: 'COMPATIBLE GROUPS', flex: 3),
                   const SizedBox(width: 28),
                 ],
               ),
