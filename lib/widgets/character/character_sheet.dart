@@ -3,28 +3,23 @@
 import 'package:material_ui/material_ui.dart';
 
 import 'attributes/attributes_section.dart';
+
 import 'character_info/character_header.dart';
 import 'character_info/character_info_section.dart';
+
 import 'combat/combat_section.dart';
+
 import 'melee_weapons/melee_weapons_section.dart';
+
 import 'shared/section_title.dart';
 import 'shared/placeholder_section.dart';
 
-class CharacterSheet extends StatefulWidget {
-  final ValueChanged<int?> onRollDice;
-  final void Function(
-    int diceCount,
-    int modifier,
-    String modifierLabel,
-    bool isAttackRoll,
-  )
-  onRollCustomDice;
+import '../../models/dice/dice_roll.dart';
 
-  const CharacterSheet({
-    super.key,
-    required this.onRollDice,
-    required this.onRollCustomDice,
-  });
+class CharacterSheet extends StatefulWidget {
+  final ValueChanged<DiceRoll> onRoll;
+
+  const CharacterSheet({super.key, required this.onRoll});
 
   @override
   State<CharacterSheet> createState() => _CharacterSheetState();
@@ -41,7 +36,7 @@ class _CharacterSheetState extends State<CharacterSheet> {
         Expanded(
           flex: 1,
           child: AttributesSection(
-            onRollDice: widget.onRollDice,
+            onRoll: widget.onRoll,
             onDexterityChanged: (value) {
               setState(() {
                 _dexterity = value;
@@ -71,7 +66,7 @@ class _CharacterSheetState extends State<CharacterSheet> {
 
                 const SizedBox(height: 20),
 
-                MeleeWeaponsSection(onRollCustomDice: widget.onRollCustomDice),
+                MeleeWeaponsSection(onRoll: widget.onRoll),
 
                 const SizedBox(height: 32),
 

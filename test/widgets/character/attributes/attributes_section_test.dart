@@ -1,6 +1,7 @@
 //test/widgets/character/attributes/attributes_section_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:material_ui/material_ui.dart';
 
 import 'package:da_roller/widgets/character/attributes/attributes_section.dart';
@@ -15,7 +16,7 @@ void main() {
     return MaterialApp(
       home: Scaffold(
         body: AttributesSection(
-          onRollDice: (_) {},
+          onRoll: (_) {},
           onDexterityChanged: (value) {
             updatedDexterity = value;
           },

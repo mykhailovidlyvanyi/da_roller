@@ -5,17 +5,18 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/character/character_attribute.dart';
+import '../../../models/dice/dice_roll.dart';
 
 class AttributeCard extends StatefulWidget {
   final CharacterAttribute attribute;
   final ValueChanged<CharacterAttribute> onChanged;
-  final ValueChanged<int?> onRollDice;
+  final ValueChanged<DiceRoll> onRoll;
 
   const AttributeCard({
     super.key,
     required this.attribute,
     required this.onChanged,
-    required this.onRollDice,
+    required this.onRoll,
   });
 
   @override
@@ -48,7 +49,14 @@ class _AttributeCardState extends State<AttributeCard> {
       _isRolling = true;
     });
 
-    widget.onRollDice(widget.attribute.value);
+    widget.onRoll(
+      DiceRoll(
+        type: DiceRollType.attribute,
+        diceCount: 3,
+        modifier: widget.attribute.value,
+        modifierLabel: 'Attribute',
+      ),
+    );
 
     _rollTimer = Timer(const Duration(milliseconds: 450), () {
       if (!mounted) return;

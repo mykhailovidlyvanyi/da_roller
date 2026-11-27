@@ -21,6 +21,9 @@ class DicePanel extends StatelessWidget {
   final String modifierLabel;
   final VoidCallback onRollAll;
   final bool isAttackRoll;
+  final ValueChanged<int> onSingleRollRequested;
+
+  final int? selectedSingleDieIndex;
 
   const DicePanel({
     super.key,
@@ -36,6 +39,8 @@ class DicePanel extends StatelessWidget {
     required this.modifierLabel,
     required this.onRollAll,
     required this.isAttackRoll,
+    required this.onSingleRollRequested,
+    required this.selectedSingleDieIndex,
   });
 
   @override
@@ -56,6 +61,7 @@ class DicePanel extends StatelessWidget {
           skinSet: selectedSkinSet,
           onResultsChanged: onResultsChanged,
           onRollingChanged: onRollingChanged,
+          onSingleRollRequested: onSingleRollRequested,
         );
 
         final diceResults = DiceResults(
@@ -63,6 +69,7 @@ class DicePanel extends StatelessWidget {
           diceCount: diceCount,
           modifier: modifier,
           modifierLabel: modifierLabel,
+          selectedSingleDieIndex: selectedSingleDieIndex,
         );
 
         final stunts = SizedBox(

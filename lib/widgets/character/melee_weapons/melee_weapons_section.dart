@@ -3,17 +3,12 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/dice/melee_weapon.dart';
+import '../../../models/dice/dice_roll.dart';
 
 class MeleeWeaponsSection extends StatefulWidget {
-  final void Function(
-    int diceCount,
-    int modifier,
-    String modifierLabel,
-    bool isAttackRoll,
-  )
-  onRollCustomDice;
+  final ValueChanged<DiceRoll> onRoll;
 
-  const MeleeWeaponsSection({super.key, required this.onRollCustomDice});
+  const MeleeWeaponsSection({super.key, required this.onRoll});
 
   @override
   State<MeleeWeaponsSection> createState() => _MeleeWeaponsSectionState();
@@ -379,11 +374,13 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                       ),
                       tooltip: 'Roll attack',
                       onPressed: () {
-                        widget.onRollCustomDice(
-                          3,
-                          weapon.attackBonus,
-                          'Attack Bonus',
-                          true,
+                        widget.onRoll(
+                          DiceRoll(
+                            type: DiceRollType.attack,
+                            diceCount: 3,
+                            modifier: weapon.attackBonus,
+                            modifierLabel: 'Attack Bonus',
+                          ),
                         );
                       },
                       icon: const Icon(
@@ -401,11 +398,13 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                       ),
                       tooltip: 'Roll damage',
                       onPressed: () {
-                        widget.onRollCustomDice(
-                          weapon.damageDice,
-                          weapon.damageModifier,
-                          'Damage Modifier',
-                          false,
+                        widget.onRoll(
+                          DiceRoll(
+                            type: DiceRollType.damage,
+                            diceCount: weapon.damageDice,
+                            modifier: weapon.damageModifier,
+                            modifierLabel: 'Damage Modifier',
+                          ),
                         );
                       },
                       icon: const Icon(

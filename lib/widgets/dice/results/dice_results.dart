@@ -7,6 +7,7 @@ class DiceResults extends StatelessWidget {
   final int diceCount;
   final int? modifier;
   final String modifierLabel;
+  final int? selectedSingleDieIndex;
 
   const DiceResults({
     super.key,
@@ -14,6 +15,7 @@ class DiceResults extends StatelessWidget {
     required this.diceCount,
     required this.modifier,
     required this.modifierLabel,
+    required this.selectedSingleDieIndex,
   });
 
   @override
@@ -22,12 +24,20 @@ class DiceResults extends StatelessWidget {
 
     final displayDiceCount = diceCount < 3 ? 3 : diceCount;
 
-    final allDiceRolled =
-        diceCount <= results.length &&
-        results.take(diceCount).every((value) => value != null);
+    final isSingleRoll = selectedSingleDieIndex != null;
+
+    final allDiceRolled = isSingleRoll
+        ? selectedSingleDieIndex! < results.length &&
+              results[selectedSingleDieIndex!] != null
+        : diceCount <= results.length &&
+              results.take(diceCount).every((value) => value != null);
 
     final diceSum = allDiceRolled
-        ? results.take(diceCount).fold<int>(0, (sum, value) => sum + value!)
+        ? isSingleRoll
+              ? results[selectedSingleDieIndex!]!
+              : results
+                    .take(diceCount)
+                    .fold<int>(0, (sum, value) => sum + value!)
         : null;
 
     final total = diceSum != null ? diceSum + (modifier ?? 0) : null;

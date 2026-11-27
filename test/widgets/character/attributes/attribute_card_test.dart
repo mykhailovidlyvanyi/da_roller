@@ -1,15 +1,19 @@
 //test/services/dice_service_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:material_ui/material_ui.dart';
+
 import 'package:da_roller/models/character/character_attribute.dart';
 import 'package:da_roller/widgets/character/attributes/attribute_card.dart';
+
+import 'package:da_roller/models/dice/dice_roll.dart';
 
 void main() {
   Widget createTestWidget({
     required CharacterAttribute attribute,
     ValueChanged<CharacterAttribute>? onChanged,
-    ValueChanged<int?>? onRollDice,
+    ValueChanged<DiceRoll>? onRoll,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -19,7 +23,7 @@ void main() {
           child: AttributeCard(
             attribute: attribute,
             onChanged: onChanged ?? (_) {},
-            onRollDice: onRollDice ?? (_) {},
+            onRoll: onRoll ?? (_) {},
           ),
         ),
       ),
@@ -63,15 +67,15 @@ void main() {
       expect(find.text('Add focus...'), findsOneWidget);
     });
 
-    testWidgets('calls onRollDice with attribute value', (tester) async {
-      int? rolledValue;
+    testWidgets('calls onRoll with attribute DiceRoll', (tester) async {
+      DiceRoll? receivedRoll;
 
       const attribute = CharacterAttribute(name: 'STRENGTH', value: 4);
 
       await tester.pumpWidget(
         createTestWidget(
           attribute: attribute,
-          onRollDice: (value) => rolledValue = value,
+          onRoll: (roll) => receivedRoll = roll,
         ),
       );
 
@@ -80,7 +84,11 @@ void main() {
       // Чекаємо завершення розпізнавання одиночного натискання.
       await tester.pump(const Duration(milliseconds: 350));
 
-      expect(rolledValue, 4);
+      expect(receivedRoll, isNotNull);
+      expect(receivedRoll!.type, DiceRollType.attribute);
+      expect(receivedRoll!.diceCount, 3);
+      expect(receivedRoll!.modifier, 4);
+      expect(receivedRoll!.modifierLabel, 'Attribute');
     });
   });
 }

@@ -3,17 +3,20 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/character/character_attribute.dart';
+import '../../../models/dice/dice_roll.dart';
+
 import 'attribute_card.dart';
+
 import '../shared/section_title.dart';
 
 class AttributesSection extends StatefulWidget {
-  final ValueChanged<int?> onRollDice;
+  final ValueChanged<DiceRoll> onRoll;
 
   final ValueChanged<int> onDexterityChanged;
 
   const AttributesSection({
     super.key,
-    required this.onRollDice,
+    required this.onRoll,
     required this.onDexterityChanged,
   });
 
@@ -80,7 +83,7 @@ class _AttributesSectionState extends State<AttributesSection> {
                     onChanged: (updatedAttribute) {
                       _updateAttribute(index, updatedAttribute);
                     },
-                    onRollDice: widget.onRollDice,
+                    onRoll: widget.onRoll,
                   ),
                 );
               },

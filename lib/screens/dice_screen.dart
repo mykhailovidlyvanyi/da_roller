@@ -2,11 +2,18 @@
 
 import 'package:material_ui/material_ui.dart';
 
+import '../models/dice/dice_roll.dart';
 import '../models/dice/dice_set_skin.dart';
+
+import '../services/dice_roll_service.dart';
+
 import '../widgets/dice/panel/dice_group.dart';
 import '../widgets/dice/panel/dice_panel.dart';
+
 import '../widgets/dice/stunts/dice_stunts.dart';
+
 import '../widgets/effects/confetti_overlay.dart';
+
 import '../widgets/character/character_sheet.dart';
 
 import 'skin_selection_screen.dart';
@@ -20,33 +27,99 @@ class DiceScreen extends StatefulWidget {
 
 class _DiceScreenState extends State<DiceScreen> {
   final _diceGroupKey = GlobalKey<DiceGroupState>();
+  final _diceRollService = DiceRollService();
 
   List<int?> _results = [null, null, null];
+
   bool _isRolling = false;
-  bool _isAttackRoll = false;
   bool _showConfetti = false;
+
   int _stuntCount = 0;
 
   int _diceCount = 3;
   int? _selectedModifier;
-  String _modifierLabel = 'Attribute';
+  String _modifierLabel = '';
+
+  int? _selectedSingleDieIndex;
+
+  DiceRoll? _currentRoll;
 
   DiceSetSkin _selectedSkinSet = DiceSetSkin.classic;
 
+  bool get _isAttackRoll => _currentRoll?.type == DiceRollType.attack;
+
+  Future<void> _executeRoll(DiceRoll roll) async {
+    if (_isRolling) return;
+
+    setState(() {
+      _currentRoll = roll;
+      _diceCount = roll.diceCount;
+
+      _selectedModifier = roll.modifierLabel == null ? null : roll.modifier;
+
+      _modifierLabel = roll.modifierLabel ?? '';
+
+      _selectedSingleDieIndex = roll.type == DiceRollType.single
+          ? roll.targetDieIndex
+          : null;
+
+      _results = List.filled(roll.diceCount < 3 ? 3 : roll.diceCount, null);
+
+      _isRolling = true;
+      _showConfetti = false;
+    });
+
+    try {
+      // Wait until DiceGroup is rebuilt with the new diceCount.
+      await WidgetsBinding.instance.endOfFrame;
+
+      if (!mounted) return;
+
+      final diceGroup = _diceGroupKey.currentState;
+
+      if (diceGroup == null) {
+        throw StateError('DiceGroup is not mounted.');
+      }
+
+      final diceResults = await diceGroup.roll(roll);
+
+      if (!mounted) return;
+
+      final result = _diceRollService.createResult(
+        roll: roll,
+        diceResults: diceResults,
+      );
+
+      setState(() {
+        if (roll.type == DiceRollType.attack && hasStunts(result.diceResults)) {
+          _stuntCount = result.diceResults[2];
+          _showConfetti = true;
+        }
+      });
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isRolling = false;
+        });
+      }
+
+      rethrow;
+    }
+  }
+
   void _onResultsChanged(List<int?> results) {
+    if (!mounted) return;
+
     setState(() {
       _results = List.of(results);
     });
   }
 
   void _onRollingChanged(bool isRolling) {
+    if (!mounted) return;
+
     setState(() {
       _isRolling = isRolling;
-
-      if (!isRolling && _isAttackRoll && hasStunts(_results)) {
-        _stuntCount = _results[2]!;
-        _showConfetti = true;
-      }
     });
   }
 
@@ -55,75 +128,6 @@ class _DiceScreenState extends State<DiceScreen> {
 
     setState(() {
       _showConfetti = false;
-    });
-  }
-
-  void _startRoll({
-    required int diceCount,
-    required int modifier,
-    required String modifierLabel,
-    required bool isAttackRoll,
-  }) {
-    if (_isRolling || diceCount <= 0) return;
-
-    setState(() {
-      _diceCount = diceCount;
-      _selectedModifier = modifier;
-      _modifierLabel = modifierLabel;
-      _isAttackRoll = isAttackRoll;
-      _results = List.filled(diceCount < 3 ? 3 : diceCount, null);
-      _isRolling = true;
-      _showConfetti = false;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _diceGroupKey.currentState?.rollAll();
-    });
-  }
-
-  // Attribute roll: 3d6 + attribute value.
-  void _rollDice(int? attributeValue) {
-    _startRoll(
-      diceCount: 3,
-      modifier: attributeValue ?? 0,
-      modifierLabel: 'Attribute',
-      isAttackRoll: false,
-    );
-  }
-
-  // Custom roll: used by weapon attacks and damage.
-  void _rollCustomDice(
-    int diceCount,
-    int modifier,
-    String modifierLabel,
-    bool isAttackRoll,
-  ) {
-    _startRoll(
-      diceCount: diceCount,
-      modifier: modifier,
-      modifierLabel: modifierLabel,
-      isAttackRoll: isAttackRoll,
-    );
-  }
-
-  // Roll all three dice from the dice panel.
-  void _rollAllThreeDice() {
-    if (_isRolling) return;
-    _isAttackRoll = false;
-
-    setState(() {
-      _diceCount = 3;
-      _selectedModifier = null;
-      _modifierLabel = '';
-      _results = [null, null, null];
-      _isRolling = true;
-      _showConfetti = false;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _diceGroupKey.currentState?.rollAll();
     });
   }
 
@@ -157,12 +161,7 @@ class _DiceScreenState extends State<DiceScreen> {
         child: Stack(
           children: [
             // Character sheet
-            Positioned.fill(
-              child: CharacterSheet(
-                onRollDice: _rollDice,
-                onRollCustomDice: _rollCustomDice,
-              ),
-            ),
+            Positioned.fill(child: CharacterSheet(onRoll: _executeRoll)),
 
             // Dark overlay
             if (_showConfetti)
@@ -181,7 +180,7 @@ class _DiceScreenState extends State<DiceScreen> {
                 ),
               ),
 
-            // Dice panel stays above the overlay and confetti
+            // Dice panel
             Positioned(
               left: 0,
               right: 0,
@@ -197,8 +196,22 @@ class _DiceScreenState extends State<DiceScreen> {
                 onResultsChanged: _onResultsChanged,
                 onRollingChanged: _onRollingChanged,
                 onOpenSkinSelection: _openSkinSelection,
-                onRollAll: _rollAllThreeDice,
+                onRollAll: () {
+                  _executeRoll(
+                    const DiceRoll(type: DiceRollType.panel, diceCount: 3),
+                  );
+                },
                 isAttackRoll: _isAttackRoll,
+                onSingleRollRequested: (index) {
+                  _executeRoll(
+                    DiceRoll(
+                      type: DiceRollType.single,
+                      diceCount: 1,
+                      targetDieIndex: index,
+                    ),
+                  );
+                },
+                selectedSingleDieIndex: _selectedSingleDieIndex,
               ),
             ),
           ],
