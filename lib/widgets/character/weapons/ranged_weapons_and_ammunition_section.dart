@@ -1,45 +1,54 @@
 //lib/widgets/character/weapons/ranged_weapons_and_ammunition_section.dart
-
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/ammunition/ammunition_storage.dart';
 import '../../../models/dice/dice_roll.dart';
+import '../../../models/weapons/ranged_weapon.dart';
+
 import 'ammunition_storage_section.dart';
 import 'ranged_weapons_section.dart';
 
-class RangedWeaponsAndAmmunitionSection extends StatefulWidget {
+class RangedWeaponsAndAmmunitionSection extends StatelessWidget {
   final ValueChanged<DiceRoll> onRoll;
 
-  const RangedWeaponsAndAmmunitionSection({super.key, required this.onRoll});
+  final AmmunitionStorage storage;
+  final ValueChanged<AmmunitionStorage> onStorageChanged;
 
-  @override
-  State<RangedWeaponsAndAmmunitionSection> createState() =>
-      _RangedWeaponsAndAmmunitionSectionState();
-}
+  final List<RangedWeapon> weapons;
+  final ValueChanged<RangedWeapon> onAddWeapon;
+  final ValueChanged<RangedWeapon> onUpdateWeapon;
+  final ValueChanged<String> onRemoveWeapon;
 
-class _RangedWeaponsAndAmmunitionSectionState
-    extends State<RangedWeaponsAndAmmunitionSection> {
-  AmmunitionStorage _storage = const AmmunitionStorage();
-
-  void _updateStorage(AmmunitionStorage storage) {
-    setState(() {
-      _storage = storage;
-    });
-  }
+  const RangedWeaponsAndAmmunitionSection({
+    super.key,
+    required this.onRoll,
+    required this.storage,
+    required this.onStorageChanged,
+    required this.weapons,
+    required this.onAddWeapon,
+    required this.onUpdateWeapon,
+    required this.onRemoveWeapon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final hasAmmunition = _storage.stacks.isNotEmpty;
+    final hasAmmunition = storage.stacks.isNotEmpty;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isNarrow = constraints.maxWidth < 700;
 
-        final rangedWeapons = RangedWeaponsSection(onRoll: widget.onRoll);
+        final rangedWeapons = RangedWeaponsSection(
+          weapons: weapons,
+          onAddWeapon: onAddWeapon,
+          onUpdateWeapon: onUpdateWeapon,
+          onRemoveWeapon: onRemoveWeapon,
+          onRoll: onRoll,
+        );
 
         final ammunition = AmmunitionStorageSection(
-          storage: _storage,
-          onStorageChanged: _updateStorage,
+          storage: storage,
+          onStorageChanged: onStorageChanged,
           expandToFill: !isNarrow,
         );
 

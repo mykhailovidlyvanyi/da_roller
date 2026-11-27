@@ -8,7 +8,8 @@ class RangedWeapon extends Weapon {
   final int longRange;
   final ReloadAction reload;
 
-  const RangedWeapon({
+  RangedWeapon({
+    super.id,
     super.name = 'New Weapon',
     super.attackBonus = 0,
     super.damageDice = 1,

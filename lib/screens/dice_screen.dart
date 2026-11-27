@@ -14,7 +14,7 @@ import '../widgets/dice/stunts/dice_stunts.dart';
 
 import '../widgets/effects/confetti_overlay.dart';
 
-import '../widgets/character/character_sheet.dart';
+import '../widgets/character/character_controller.dart';
 
 import 'skin_selection_screen.dart';
 
@@ -161,7 +161,7 @@ class _DiceScreenState extends State<DiceScreen> {
         child: Stack(
           children: [
             // Character sheet
-            Positioned.fill(child: CharacterSheet(onRoll: _executeRoll)),
+            Positioned.fill(child: CharacterController(onRoll: _executeRoll)),
 
             // Dark overlay
             if (_showConfetti)

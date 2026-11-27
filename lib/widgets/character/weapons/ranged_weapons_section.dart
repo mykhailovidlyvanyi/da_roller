@@ -15,23 +15,28 @@ import '../common/editable_value_cell.dart';
 import '../common/header_cell.dart';
 import '../common/editable_item_row.dart';
 
-class RangedWeaponsSection extends StatefulWidget {
+class RangedWeaponsSection extends StatelessWidget {
+  final List<RangedWeapon> weapons;
+  final ValueChanged<RangedWeapon> onAddWeapon;
+  final ValueChanged<RangedWeapon> onUpdateWeapon;
+  final ValueChanged<String> onRemoveWeapon;
   final ValueChanged<DiceRoll> onRoll;
 
-  const RangedWeaponsSection({super.key, required this.onRoll});
-
-  @override
-  State<RangedWeaponsSection> createState() => _RangedWeaponsSectionState();
-}
-
-class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
-  final List<RangedWeapon> _weapons = [];
+  const RangedWeaponsSection({
+    super.key,
+    required this.weapons,
+    required this.onAddWeapon,
+    required this.onUpdateWeapon,
+    required this.onRemoveWeapon,
+    required this.onRoll,
+  });
 
   static const double _weaponRowHeight = 80;
 
-  Future<void> _editWeapon({int? index}) async {
-    final existingWeapon = index == null ? null : _weapons[index];
-
+  Future<void> _editWeapon(
+    BuildContext context, {
+    RangedWeapon? existingWeapon,
+  }) async {
     final nameController = TextEditingController(
       text: existingWeapon?.name ?? '',
     );
@@ -373,8 +378,9 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
       ),
     );
 
-    if (result == true && mounted) {
+    if (result == true) {
       final weapon = RangedWeapon(
+        id: existingWeapon?.id,
         name: nameController.text.trim(),
         attackBonus: int.parse(attackBonusController.text.trim()),
         damageDice: int.parse(damageDiceController.text.trim()),
@@ -389,13 +395,11 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
         cost: int.tryParse(costController.text.trim()),
       );
 
-      setState(() {
-        if (index == null) {
-          _weapons.add(weapon);
-        } else {
-          _weapons[index] = weapon;
-        }
-      });
+      if (existingWeapon == null) {
+        onAddWeapon(weapon);
+      } else {
+        onUpdateWeapon(weapon);
+      }
     }
 
     Future<void>.delayed(const Duration(milliseconds: 300), () {
@@ -495,28 +499,20 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
     );
   }
 
-  void _removeWeapon(int index) {
-    setState(() {
-      _weapons.removeAt(index);
-    });
-  }
-
-  Widget _weaponRow(int index) {
-    final weapon = _weapons[index];
-
+  Widget _weaponRow(BuildContext context, RangedWeapon weapon) {
     return EditableItemRow(
       cells: [
         EditableValueCell(
           value: weapon.name,
           flex: 3,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         EditableValueCell(
           value: weapon.attackBonus >= 0
               ? '+${weapon.attackBonus}'
               : weapon.attackBonus.toString(),
           flex: 1,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         EditableValueCell(
           value:
@@ -527,17 +523,17 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                   ? ' + ${weapon.damageModifier}'
                   : ' - ${weapon.damageModifier.abs()}'}',
           flex: 2,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         EditableValueCell(
           value: '${weapon.shortRange}/${weapon.longRange}',
           flex: 2,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         EditableValueCell(
           value: _reloadActionLabel(weapon.reload),
           flex: 2,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         SizedBox(
           width: 88,
@@ -553,7 +549,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                 ),
                 tooltip: 'Roll attack',
                 onPressed: () {
-                  widget.onRoll(
+                  onRoll(
                     DiceRoll(
                       type: DiceRollType.attack,
                       diceCount: 3,
@@ -577,7 +573,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
                 ),
                 tooltip: 'Roll damage',
                 onPressed: () {
-                  widget.onRoll(
+                  onRoll(
                     DiceRoll(
                       type: DiceRollType.damage,
                       diceCount: weapon.damageDice,
@@ -600,7 +596,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints.tightFor(width: 28, height: 36),
           tooltip: 'Remove weapon',
-          onPressed: () => _removeWeapon(index),
+          onPressed: () => onRemoveWeapon(weapon.id),
           icon: const Icon(
             Icons.delete_outline,
             color: Colors.white38,
@@ -610,7 +606,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
       ],
       details: weapon.details,
       emptyDetailsText: 'Add weapon details...',
-      onDetailsTap: () => _editWeapon(index: index),
+      onDetailsTap: () => _editWeapon(context, existingWeapon: weapon),
     );
   }
 
@@ -638,7 +634,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
               ],
             ),
           ),
-          if (_weapons.isEmpty)
+          if (weapons.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(
@@ -651,12 +647,12 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
           else
             SizedBox(
               height:
-                  _weaponRowHeight *
-                  (_weapons.length > 3 ? 3 : _weapons.length),
+                  _weaponRowHeight * (weapons.length > 3 ? 3 : weapons.length),
               child: ListView.builder(
-                itemCount: _weapons.length,
+                itemCount: weapons.length,
                 itemExtent: _weaponRowHeight,
-                itemBuilder: (context, index) => _weaponRow(index),
+                itemBuilder: (context, index) =>
+                    _weaponRow(context, weapons[index]),
               ),
             ),
           Container(
@@ -664,7 +660,7 @@ class _RangedWeaponsSectionState extends State<RangedWeaponsSection> {
               border: Border(top: BorderSide(color: Color(0xFF383838))),
             ),
             child: TextButton.icon(
-              onPressed: () => _editWeapon(),
+              onPressed: () => _editWeapon(context),
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Add Weapon'),
               style: TextButton.styleFrom(

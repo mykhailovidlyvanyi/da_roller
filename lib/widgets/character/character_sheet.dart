@@ -1,8 +1,14 @@
-//lib/widgets/character/character_sheet.dart
+// lib/widgets/character/character_sheet.dart
 
 import 'package:material_ui/material_ui.dart';
 
 import '../../models/dice/dice_roll.dart';
+import '../../models/character/character_inventory.dart';
+import '../../models/character/character_equipment.dart';
+import '../../models/weapons/melee_weapon.dart';
+import '../../models/weapons/ranged_weapon.dart';
+
+import '../../models/ammunition/ammunition_storage.dart';
 
 import 'attributes/attributes_section.dart';
 
@@ -19,8 +25,32 @@ import 'common/placeholder_section.dart';
 
 class CharacterSheet extends StatefulWidget {
   final ValueChanged<DiceRoll> onRoll;
+  final CharacterInventory inventory;
+  final CharacterEquipment equipment;
 
-  const CharacterSheet({super.key, required this.onRoll});
+  final ValueChanged<MeleeWeapon> onAddMeleeWeapon;
+  final ValueChanged<MeleeWeapon> onUpdateMeleeWeapon;
+  final ValueChanged<String> onRemoveMeleeWeapon;
+
+  final ValueChanged<RangedWeapon> onAddRangedWeapon;
+  final ValueChanged<RangedWeapon> onUpdateRangedWeapon;
+  final ValueChanged<String> onRemoveRangedWeapon;
+
+  final ValueChanged<AmmunitionStorage> onAmmunitionStorageChanged;
+
+  const CharacterSheet({
+    super.key,
+    required this.onRoll,
+    required this.inventory,
+    required this.equipment,
+    required this.onAddMeleeWeapon,
+    required this.onUpdateMeleeWeapon,
+    required this.onRemoveMeleeWeapon,
+    required this.onAmmunitionStorageChanged,
+    required this.onAddRangedWeapon,
+    required this.onUpdateRangedWeapon,
+    required this.onRemoveRangedWeapon,
+  });
 
   @override
   State<CharacterSheet> createState() => _CharacterSheetState();
@@ -67,11 +97,25 @@ class _CharacterSheetState extends State<CharacterSheet> {
 
                 const SizedBox(height: 20),
 
-                MeleeWeaponsSection(onRoll: widget.onRoll),
+                MeleeWeaponsSection(
+                  weapons: widget.inventory.meleeWeapons,
+                  onAddWeapon: widget.onAddMeleeWeapon,
+                  onUpdateWeapon: widget.onUpdateMeleeWeapon,
+                  onRemoveWeapon: widget.onRemoveMeleeWeapon,
+                  onRoll: widget.onRoll,
+                ),
 
                 const SizedBox(height: 16),
 
-                RangedWeaponsAndAmmunitionSection(onRoll: widget.onRoll),
+                RangedWeaponsAndAmmunitionSection(
+                  onRoll: widget.onRoll,
+                  weapons: widget.inventory.rangedWeapons,
+                  onAddWeapon: widget.onAddRangedWeapon,
+                  onUpdateWeapon: widget.onUpdateRangedWeapon,
+                  onRemoveWeapon: widget.onRemoveRangedWeapon,
+                  storage: widget.inventory.ammunitionStorage,
+                  onStorageChanged: widget.onAmmunitionStorageChanged,
+                ),
 
                 const SizedBox(height: 32),
 

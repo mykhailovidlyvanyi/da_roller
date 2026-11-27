@@ -14,23 +14,28 @@ import '../common/editable_value_cell.dart';
 import '../common/header_cell.dart';
 import '../common/editable_item_row.dart';
 
-class MeleeWeaponsSection extends StatefulWidget {
+class MeleeWeaponsSection extends StatelessWidget {
+  final List<MeleeWeapon> weapons;
+  final ValueChanged<MeleeWeapon> onAddWeapon;
+  final ValueChanged<MeleeWeapon> onUpdateWeapon;
+  final ValueChanged<String> onRemoveWeapon;
   final ValueChanged<DiceRoll> onRoll;
 
-  const MeleeWeaponsSection({super.key, required this.onRoll});
-
-  @override
-  State<MeleeWeaponsSection> createState() => _MeleeWeaponsSectionState();
-}
-
-class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
-  final List<MeleeWeapon> _weapons = [];
+  const MeleeWeaponsSection({
+    super.key,
+    required this.weapons,
+    required this.onAddWeapon,
+    required this.onUpdateWeapon,
+    required this.onRemoveWeapon,
+    required this.onRoll,
+  });
 
   static const double _weaponRowHeight = 76;
 
-  Future<void> _editWeapon({int? index}) async {
-    final existingWeapon = index == null ? null : _weapons[index];
-
+  Future<void> _editWeapon(
+    BuildContext context, {
+    MeleeWeapon? existingWeapon,
+  }) async {
     final nameController = TextEditingController(
       text: existingWeapon?.name ?? '',
     );
@@ -285,8 +290,9 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
       ),
     );
 
-    if (result == true && mounted) {
+    if (result == true) {
       final weapon = MeleeWeapon(
+        id: existingWeapon?.id,
         name: nameController.text.trim(),
         attackBonus: int.parse(attackBonusController.text.trim()),
         damageDice: int.parse(damageDiceController.text.trim()),
@@ -298,13 +304,11 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
         cost: int.tryParse(costController.text.trim()),
       );
 
-      setState(() {
-        if (index == null) {
-          _weapons.add(weapon);
-        } else {
-          _weapons[index] = weapon;
-        }
-      });
+      if (existingWeapon == null) {
+        onAddWeapon(weapon);
+      } else {
+        onUpdateWeapon(weapon);
+      }
     }
 
     Future<void>.delayed(const Duration(milliseconds: 300), () {
@@ -380,28 +384,20 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
     );
   }
 
-  void _removeWeapon(int index) {
-    setState(() {
-      _weapons.removeAt(index);
-    });
-  }
-
-  Widget _weaponRow(int index) {
-    final weapon = _weapons[index];
-
+  Widget _weaponRow(BuildContext context, MeleeWeapon weapon) {
     return EditableItemRow(
       cells: [
         EditableValueCell(
           value: weapon.name,
           flex: 3,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         EditableValueCell(
           value: weapon.attackBonus >= 0
               ? '+${weapon.attackBonus}'
               : weapon.attackBonus.toString(),
           flex: 1,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         EditableValueCell(
           value:
@@ -412,7 +408,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                   ? ' + ${weapon.damageModifier}'
                   : ' - ${weapon.damageModifier.abs()}'}',
           flex: 2,
-          onTap: () => _editWeapon(index: index),
+          onTap: () => _editWeapon(context, existingWeapon: weapon),
         ),
         SizedBox(
           width: 88,
@@ -428,7 +424,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                 ),
                 tooltip: 'Roll attack',
                 onPressed: () {
-                  widget.onRoll(
+                  onRoll(
                     DiceRoll(
                       type: DiceRollType.attack,
                       diceCount: 3,
@@ -452,7 +448,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                 ),
                 tooltip: 'Roll damage',
                 onPressed: () {
-                  widget.onRoll(
+                  onRoll(
                     DiceRoll(
                       type: DiceRollType.damage,
                       diceCount: weapon.damageDice,
@@ -475,7 +471,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints.tightFor(width: 28, height: 36),
           tooltip: 'Remove weapon',
-          onPressed: () => _removeWeapon(index),
+          onPressed: () => onRemoveWeapon(weapon.id),
           icon: const Icon(
             Icons.delete_outline,
             color: Colors.white38,
@@ -485,7 +481,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
       ],
       details: weapon.details,
       emptyDetailsText: 'Add weapon details...',
-      onDetailsTap: () => _editWeapon(index: index),
+      onDetailsTap: () => _editWeapon(context, existingWeapon: weapon),
     );
   }
 
@@ -511,7 +507,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
               ],
             ),
           ),
-          if (_weapons.isEmpty)
+          if (weapons.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(
@@ -524,12 +520,12 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
           else
             SizedBox(
               height:
-                  _weaponRowHeight *
-                  (_weapons.length > 3 ? 3 : _weapons.length),
+                  _weaponRowHeight * (weapons.length > 3 ? 3 : weapons.length),
               child: ListView.builder(
-                itemCount: _weapons.length,
+                itemCount: weapons.length,
                 itemExtent: _weaponRowHeight,
-                itemBuilder: (context, index) => _weaponRow(index),
+                itemBuilder: (context, index) =>
+                    _weaponRow(context, weapons[index]),
               ),
             ),
           Container(
@@ -537,7 +533,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
               border: Border(top: BorderSide(color: Color(0xFF383838))),
             ),
             child: TextButton.icon(
-              onPressed: () => _editWeapon(),
+              onPressed: () => _editWeapon(context),
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Add Weapon'),
               style: TextButton.styleFrom(

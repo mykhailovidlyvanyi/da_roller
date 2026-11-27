@@ -1,9 +1,14 @@
 //lib/models/weapons/weapon.dart
 
+import 'package:uuid/uuid.dart';
+
 import 'weapon_group.dart';
 import 'weapon_attribute.dart';
 
+const _uuid = Uuid();
+
 abstract class Weapon {
+  final String id;
   final String name;
   final int attackBonus;
   final int damageDice;
@@ -15,7 +20,8 @@ abstract class Weapon {
   final int? minStrength;
   final int? cost;
 
-  const Weapon({
+  Weapon({
+    String? id,
     required this.name,
     required this.attackBonus,
     required this.damageDice,
@@ -25,5 +31,5 @@ abstract class Weapon {
     this.mainAttribute,
     this.minStrength,
     this.cost,
-  });
+  }) : id = id ?? _uuid.v4();
 }

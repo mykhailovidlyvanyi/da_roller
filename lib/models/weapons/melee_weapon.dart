@@ -3,7 +3,8 @@
 import 'weapon.dart';
 
 class MeleeWeapon extends Weapon {
-  const MeleeWeapon({
+  MeleeWeapon({
+    super.id,
     super.name = 'New Weapon',
     super.attackBonus = 0,
     super.damageDice = 1,

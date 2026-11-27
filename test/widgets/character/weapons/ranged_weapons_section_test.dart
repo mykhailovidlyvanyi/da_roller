@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:da_roller/models/dice/dice_roll.dart';
+import 'package:da_roller/models/weapons/ranged_weapon.dart';
 import 'package:da_roller/widgets/character/weapons/ranged_weapons_section.dart';
 
 void main() {
@@ -19,9 +20,41 @@ void main() {
     WidgetTester tester, {
     ValueChanged<DiceRoll>? onRoll,
   }) async {
+    final weapons = <RangedWeapon>[];
+
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: RangedWeaponsSection(onRoll: onRoll ?? (_) {})),
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) {
+              return RangedWeaponsSection(
+                weapons: weapons,
+                onAddWeapon: (weapon) {
+                  setState(() {
+                    weapons.add(weapon);
+                  });
+                },
+                onUpdateWeapon: (updatedWeapon) {
+                  setState(() {
+                    final index = weapons.indexWhere(
+                      (weapon) => weapon.id == updatedWeapon.id,
+                    );
+
+                    if (index != -1) {
+                      weapons[index] = updatedWeapon;
+                    }
+                  });
+                },
+                onRemoveWeapon: (weaponId) {
+                  setState(() {
+                    weapons.removeWhere((weapon) => weapon.id == weaponId);
+                  });
+                },
+                onRoll: onRoll ?? (_) {},
+              );
+            },
+          ),
+        ),
       ),
     );
   }

@@ -149,6 +149,7 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
       );
 
       final stack = AmmunitionStack(
+        id: existingStack?.id,
         ammunition: ammunition,
         quantity: int.parse(quantityController.text.trim()),
       );
