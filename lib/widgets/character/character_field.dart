@@ -53,12 +53,29 @@ class CharacterField extends StatelessWidget {
     );
 
     if (horizontal) {
-      return Row(
-        children: [
-          SizedBox(width: 105, child: labelWidget),
-          const SizedBox(width: 12),
-          Expanded(child: fieldWidget),
-        ],
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 220) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (label.isNotEmpty) ...[
+                  labelWidget,
+                  const SizedBox(height: 8),
+                ],
+                fieldWidget,
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              SizedBox(width: 105, child: labelWidget),
+              const SizedBox(width: 12),
+              Expanded(child: fieldWidget),
+            ],
+          );
+        },
       );
     }
 

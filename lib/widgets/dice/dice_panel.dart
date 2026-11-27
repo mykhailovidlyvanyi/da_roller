@@ -6,6 +6,7 @@ import '../../models/dice_set_skin.dart';
 import 'dice_group.dart';
 import 'dice_results.dart';
 import 'dice_panel_actions.dart';
+import 'dice_stunts.dart';
 
 class DicePanel extends StatelessWidget {
   final GlobalKey<DiceGroupState> diceGroupKey;
@@ -19,6 +20,7 @@ class DicePanel extends StatelessWidget {
   final int? modifier;
   final String modifierLabel;
   final VoidCallback onRollAll;
+  final bool isAttackRoll;
 
   const DicePanel({
     super.key,
@@ -33,52 +35,89 @@ class DicePanel extends StatelessWidget {
     required this.modifier,
     required this.modifierLabel,
     required this.onRollAll,
+    required this.isAttackRoll,
   });
 
   @override
   Widget build(BuildContext context) {
     const cardColor = Color(0xFF242424);
 
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.10,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: cardColor,
-          border: Border(top: BorderSide(color: Color(0xFF383838))),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: DiceGroup(
-                key: diceGroupKey,
-                diceCount: diceCount,
-                skinSet: selectedSkinSet,
-                onResultsChanged: onResultsChanged,
-                onRollingChanged: onRollingChanged,
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: DiceResults(
-                results: results,
-                diceCount: diceCount,
-                modifier: modifier,
-                modifierLabel: modifierLabel,
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: DicePanelActions(
-                isRolling: isRolling,
-                onOpenSkinSelection: onOpenSkinSelection,
-                onRollAll: onRollAll,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 600;
+
+        final spacing = (constraints.maxWidth * 0.02)
+            .clamp(8.0, 20.0)
+            .toDouble();
+
+        final diceGroup = DiceGroup(
+          key: diceGroupKey,
+          diceCount: diceCount,
+          skinSet: selectedSkinSet,
+          onResultsChanged: onResultsChanged,
+          onRollingChanged: onRollingChanged,
+        );
+
+        final diceResults = DiceResults(
+          results: results,
+          diceCount: diceCount,
+          modifier: modifier,
+          modifierLabel: modifierLabel,
+        );
+
+        final stunts = SizedBox(
+          width: 72,
+          child: DiceStunts(
+            results: results,
+            isAttackRoll: isAttackRoll,
+            isRolling: isRolling,
+          ),
+        );
+
+        final actions = DicePanelActions(
+          isRolling: isRolling,
+          onOpenSkinSelection: onOpenSkinSelection,
+          onRollAll: onRollAll,
+        );
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: cardColor,
+            border: Border(top: BorderSide(color: Color(0xFF383838))),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: isCompact ? 8 : 4,
+          ),
+          child: isCompact
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    diceGroup,
+                    SizedBox(height: spacing),
+                    SizedBox(height: 40, child: diceResults),
+                    SizedBox(height: spacing),
+                    SizedBox(height: 28, child: stunts),
+                    SizedBox(height: spacing),
+                    actions,
+                  ],
+                )
+              : SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.10,
+                  child: Row(
+                    children: [
+                      Expanded(flex: 3, child: diceGroup),
+                      SizedBox(width: spacing),
+                      Expanded(flex: 5, child: diceResults),
+                      SizedBox(width: spacing),
+                      stunts,
+                      SizedBox(width: spacing),
+                      SizedBox(width: 88, child: actions),
+                    ],
+                  ),
+                ),
+        );
+      },
     );
   }
 }

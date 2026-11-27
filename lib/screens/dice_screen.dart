@@ -21,6 +21,7 @@ class _DiceScreenState extends State<DiceScreen> {
 
   List<int?> _results = [null, null, null];
   bool _isRolling = false;
+  bool _isAttackRoll = false;
 
   int _diceCount = 3;
   int? _selectedModifier;
@@ -44,6 +45,7 @@ class _DiceScreenState extends State<DiceScreen> {
     required int diceCount,
     required int modifier,
     required String modifierLabel,
+    required bool isAttackRoll,
   }) {
     if (_isRolling || diceCount <= 0) return;
 
@@ -51,6 +53,7 @@ class _DiceScreenState extends State<DiceScreen> {
       _diceCount = diceCount;
       _selectedModifier = modifier;
       _modifierLabel = modifierLabel;
+      _isAttackRoll = isAttackRoll;
       _results = List.filled(diceCount < 3 ? 3 : diceCount, null);
       _isRolling = true;
     });
@@ -67,21 +70,29 @@ class _DiceScreenState extends State<DiceScreen> {
       diceCount: 3,
       modifier: attributeValue ?? 0,
       modifierLabel: 'Attribute',
+      isAttackRoll: false,
     );
   }
 
   // Custom roll: used by weapon attacks and damage.
-  void _rollCustomDice(int diceCount, int modifier, String modifierLabel) {
+  void _rollCustomDice(
+    int diceCount,
+    int modifier,
+    String modifierLabel,
+    bool isAttackRoll,
+  ) {
     _startRoll(
       diceCount: diceCount,
       modifier: modifier,
       modifierLabel: modifierLabel,
+      isAttackRoll: isAttackRoll,
     );
   }
 
   // Roll all three dice from the dice panel.
   void _rollAllThreeDice() {
     if (_isRolling) return;
+    _isAttackRoll = false;
 
     setState(() {
       _diceCount = 3;
@@ -148,6 +159,7 @@ class _DiceScreenState extends State<DiceScreen> {
                 onRollingChanged: _onRollingChanged,
                 onOpenSkinSelection: _openSkinSelection,
                 onRollAll: _rollAllThreeDice,
+                isAttackRoll: _isAttackRoll,
               ),
             ),
           ],

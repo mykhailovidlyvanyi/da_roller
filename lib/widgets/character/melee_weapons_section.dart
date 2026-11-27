@@ -5,7 +5,12 @@ import 'package:material_ui/material_ui.dart';
 import '../../models/melee_weapon.dart';
 
 class MeleeWeaponsSection extends StatefulWidget {
-  final void Function(int diceCount, int modifier, String modifierLabel)
+  final void Function(
+    int diceCount,
+    int modifier,
+    String modifierLabel,
+    bool isAttackRoll,
+  )
   onRollCustomDice;
 
   const MeleeWeaponsSection({super.key, required this.onRollCustomDice});
@@ -378,6 +383,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                           3,
                           weapon.attackBonus,
                           'Attack Bonus',
+                          true,
                         );
                       },
                       icon: const Icon(
@@ -399,6 +405,7 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                           weapon.damageDice,
                           weapon.damageModifier,
                           'Damage Modifier',
+                          false,
                         );
                       },
                       icon: const Icon(

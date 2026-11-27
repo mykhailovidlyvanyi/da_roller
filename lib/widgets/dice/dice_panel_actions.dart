@@ -1,5 +1,4 @@
 //lib/widgets/dice/dice_panel_actions.dart
-
 import 'package:material_ui/material_ui.dart';
 
 class DicePanelActions extends StatelessWidget {
@@ -23,7 +22,6 @@ class DicePanelActions extends StatelessWidget {
         IconButton(
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
           onPressed: isRolling ? null : onOpenSkinSelection,
           icon: const Icon(
             Icons.palette_outlined,
@@ -35,7 +33,6 @@ class DicePanelActions extends StatelessWidget {
         IconButton(
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
           onPressed: isRolling ? null : onRollAll,
           icon: const Icon(
             Icons.casino_outlined,

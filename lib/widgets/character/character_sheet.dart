@@ -12,7 +12,12 @@ import 'placeholder_section.dart';
 
 class CharacterSheet extends StatefulWidget {
   final ValueChanged<int?> onRollDice;
-  final void Function(int diceCount, int modifier, String modifierLabel)
+  final void Function(
+    int diceCount,
+    int modifier,
+    String modifierLabel,
+    bool isAttackRoll,
+  )
   onRollCustomDice;
 
   const CharacterSheet({
