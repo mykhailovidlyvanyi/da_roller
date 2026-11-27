@@ -75,16 +75,13 @@ class _AttributesSectionState extends State<AttributesSection> {
               itemBuilder: (context, index) {
                 final attribute = _attributes[index];
 
-                return SizedBox(
-                  height: 90,
-                  child: AttributeCard(
-                    key: ValueKey(attribute.name),
-                    attribute: attribute,
-                    onChanged: (updatedAttribute) {
-                      _updateAttribute(index, updatedAttribute);
-                    },
-                    onRoll: widget.onRoll,
-                  ),
+                return AttributeCard(
+                  key: ValueKey(attribute.name),
+                  attribute: attribute,
+                  onChanged: (updatedAttribute) {
+                    _updateAttribute(index, updatedAttribute);
+                  },
+                  onRoll: widget.onRoll,
                 );
               },
             ),

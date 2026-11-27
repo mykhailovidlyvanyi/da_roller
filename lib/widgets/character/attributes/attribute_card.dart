@@ -114,6 +114,129 @@ class _AttributeCardState extends State<AttributeCard> {
     }
   }
 
+  // Attribute value widget
+
+  Widget _buildValue() {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _isValueEditing ? null : _rollDice,
+      onDoubleTap: _isValueEditing ? null : _startValueEditing,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 30,
+                  child: _isValueEditing
+                      ? TextField(
+                          controller: _valueController,
+                          autofocus: true,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                            border: InputBorder.none,
+                          ),
+                          onSubmitted: (_) => _saveValue(),
+                        )
+                      : Center(
+                          child: Text(
+                            widget.attribute.value.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+
+          if (_isValueEditing)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    onTap: _saveValue,
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.greenAccent,
+                      size: 14,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _cancelValueEditing,
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white54,
+                      size: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Focus widget
+
+  Widget _buildFocus() {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onDoubleTap: _editFocus,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'FOCUS',
+              maxLines: 1,
+              softWrap: false,
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+            Text(
+              widget.attribute.focus.isEmpty
+                  ? 'Add focus...'
+                  : widget.attribute.focus,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: widget.attribute.focus.isEmpty
+                    ? Colors.white24
+                    : Colors.white,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final attribute = widget.attribute;
@@ -134,8 +257,6 @@ class _AttributeCardState extends State<AttributeCard> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Attribute name
-
           SizedBox(
             width: double.infinity,
             child: Text(
@@ -154,145 +275,47 @@ class _AttributeCardState extends State<AttributeCard> {
 
           const SizedBox(height: 2),
 
-          // Value and Focus
-          SizedBox(
-            height: 42,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Attribute value
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 150;
 
-                Expanded(
-                  flex: 1,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _isValueEditing ? null : _rollDice,
-                    onDoubleTap: _isValueEditing ? null : _startValueEditing,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                height: 30,
-                                child: _isValueEditing
-                                    ? TextField(
-                                        controller: _valueController,
-                                        autofocus: true,
-                                        keyboardType: TextInputType.number,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        decoration: const InputDecoration(
-                                          isDense: true,
-                                          contentPadding: EdgeInsets.zero,
-                                          border: InputBorder.none,
-                                        ),
-                                        onSubmitted: (_) => _saveValue(),
-                                      )
-                                    : Center(
-                                        child: Text(
-                                          attribute.value.toString(),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Value editing controls
-                        if (_isValueEditing)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                GestureDetector(
-                                  onTap: _saveValue,
-                                  child: const Icon(
-                                    Icons.check,
-                                    color: Colors.greenAccent,
-                                    size: 14,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: _cancelValueEditing,
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Colors.white54,
-                                    size: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
+              if (isNarrow) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 30,
+                      width: double.infinity,
+                      child: _buildValue(),
                     ),
-                  ),
-                ),
-
-                // Divider
-                Container(
-                  width: 1,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  color: Colors.white10,
-                ),
-
-                // Focus
-                Expanded(
-                  flex: 1,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onDoubleTap: _editFocus,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'FOCUS',
-                            maxLines: 1,
-                            softWrap: false,
-                            style: TextStyle(
-                              color: Colors.white54,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          Text(
-                            attribute.focus.isEmpty
-                                ? 'Add focus...'
-                                : attribute.focus,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: attribute.focus.isEmpty
-                                  ? Colors.white24
-                                  : Colors.white,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
+                    const Divider(
+                      height: 8,
+                      thickness: 1,
+                      color: Colors.white10,
                     ),
-                  ),
+                    SizedBox(width: double.infinity, child: _buildFocus()),
+                  ],
+                );
+              }
+
+              return SizedBox(
+                height: 42,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: _buildValue()),
+
+                    Container(
+                      width: 1,
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      color: Colors.white10,
+                    ),
+
+                    Expanded(child: _buildFocus()),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),
