@@ -2,6 +2,20 @@
 
 import 'package:material_ui/material_ui.dart';
 
+bool hasStunts(List<int?> results) {
+  if (results.length < 3) return false;
+
+  final dice = results.take(3).toList();
+
+  if (dice.any((value) => value == null)) return false;
+
+  final first = dice[0]!;
+  final second = dice[1]!;
+  final dragon = dice[2]!;
+
+  return first == second || first == dragon || second == dragon;
+}
+
 class DiceStunts extends StatelessWidget {
   final List<int?> results;
   final bool isAttackRoll;
@@ -16,26 +30,11 @@ class DiceStunts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!isAttackRoll || isRolling || results.length < 3) {
+    if (!isAttackRoll || isRolling || !hasStunts(results)) {
       return const SizedBox.shrink();
     }
 
-    final dice = results.take(3).toList();
-
-    if (dice.any((value) => value == null)) {
-      return const SizedBox.shrink();
-    }
-
-    final first = dice[0]!;
-    final second = dice[1]!;
-    final dragon = dice[2]!;
-
-    final hasMatchingDice =
-        first == second || first == dragon || second == dragon;
-
-    if (!hasMatchingDice) {
-      return const SizedBox.shrink();
-    }
+    final dragon = results[2]!;
 
     return SizedBox(
       width: 56,

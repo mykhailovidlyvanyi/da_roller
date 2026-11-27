@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import '../models/dice_set_skin.dart';
 import '../widgets/dice/dice_group.dart';
 import '../widgets/dice/dice_panel.dart';
+import '../widgets/dice/dice_stunts.dart';
+import '../widgets/effects/confetti_overlay.dart';
 import '../widgets/character/character_sheet.dart';
 
 import 'skin_selection_screen.dart';
@@ -22,6 +24,8 @@ class _DiceScreenState extends State<DiceScreen> {
   List<int?> _results = [null, null, null];
   bool _isRolling = false;
   bool _isAttackRoll = false;
+  bool _showConfetti = false;
+  int _stuntCount = 0;
 
   int _diceCount = 3;
   int? _selectedModifier;
@@ -38,6 +42,19 @@ class _DiceScreenState extends State<DiceScreen> {
   void _onRollingChanged(bool isRolling) {
     setState(() {
       _isRolling = isRolling;
+
+      if (!isRolling && _isAttackRoll && hasStunts(_results)) {
+        _stuntCount = _results[2]!;
+        _showConfetti = true;
+      }
+    });
+  }
+
+  void _onConfettiComplete() {
+    if (!mounted) return;
+
+    setState(() {
+      _showConfetti = false;
     });
   }
 
@@ -56,6 +73,7 @@ class _DiceScreenState extends State<DiceScreen> {
       _isAttackRoll = isAttackRoll;
       _results = List.filled(diceCount < 3 ? 3 : diceCount, null);
       _isRolling = true;
+      _showConfetti = false;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -100,6 +118,7 @@ class _DiceScreenState extends State<DiceScreen> {
       _modifierLabel = '';
       _results = [null, null, null];
       _isRolling = true;
+      _showConfetti = false;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -137,12 +156,32 @@ class _DiceScreenState extends State<DiceScreen> {
       body: SafeArea(
         child: Stack(
           children: [
+            // Character sheet
             Positioned.fill(
               child: CharacterSheet(
                 onRollDice: _rollDice,
                 onRollCustomDice: _rollCustomDice,
               ),
             ),
+
+            // Dark overlay
+            if (_showConfetti)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Container(color: Colors.black.withValues(alpha: 0.6)),
+                ),
+              ),
+
+            // Confetti animation
+            if (_showConfetti)
+              Positioned.fill(
+                child: ConfettiOverlay(
+                  stuntCount: _stuntCount,
+                  onComplete: _onConfettiComplete,
+                ),
+              ),
+
+            // Dice panel stays above the overlay and confetti
             Positioned(
               left: 0,
               right: 0,
