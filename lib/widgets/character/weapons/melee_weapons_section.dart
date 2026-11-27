@@ -1,8 +1,11 @@
-//lib/widgets/character/melee_weapons/melee_weapons_section.dart
+//lib/widgets/character/weapons/melee_weapons_section.dart
 
 import 'package:material_ui/material_ui.dart';
 
-import '../../../models/dice/melee_weapon.dart';
+import '../../../models/weapons/melee_weapon.dart';
+import '../../../models/weapons/weapon_group.dart';
+import '../../../models/weapons/weapon_attribute.dart';
+
 import '../../../models/dice/dice_roll.dart';
 
 class MeleeWeaponsSection extends StatefulWidget {
@@ -16,6 +19,9 @@ class MeleeWeaponsSection extends StatefulWidget {
 
 class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
   final List<MeleeWeapon> _weapons = [];
+
+  static const double _weaponRowHeight = 76;
+  static const double _detailsHeight = 20;
 
   Future<void> _editWeapon({int? index}) async {
     final existingWeapon = index == null ? null : _weapons[index];
@@ -35,6 +41,15 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
     final detailsController = TextEditingController(
       text: existingWeapon?.details ?? '',
     );
+    final minStrengthController = TextEditingController(
+      text: existingWeapon?.minStrength?.toString() ?? '',
+    );
+    final costController = TextEditingController(
+      text: existingWeapon?.cost?.toString() ?? '',
+    );
+
+    WeaponGroup? selectedWeaponGroup = existingWeapon?.weaponGroup;
+    WeaponAttribute? selectedMainAttribute = existingWeapon?.mainAttribute;
 
     final formKey = GlobalKey<FormState>();
 
@@ -44,34 +59,64 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: Text(
-          existingWeapon == null ? 'Add Melee Weapon' : 'Edit Melee Weapon',
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        content: SingleChildScrollView(
-          child: SizedBox(
-            width: contentWidth,
-            child: Form(
-              key: formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (isWide)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _buildInput(
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF2A2A2A),
+          title: Text(
+            existingWeapon == null ? 'Add Melee Weapon' : 'Edit Melee Weapon',
+            style: const TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: contentWidth,
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (isWide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _buildInput(
+                              controller: nameController,
+                              label: 'Name',
+                              required: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildInput(
+                              controller: attackBonusController,
+                              label: 'Attack Bonus',
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    signed: true,
+                                  ),
+                              required: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: _buildDamageInputs(
+                              damageDiceController,
+                              damageModifierController,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Column(
+                        children: [
+                          _buildInput(
                             controller: nameController,
                             label: 'Name',
                             required: true,
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildInput(
+                          const SizedBox(height: 8),
+                          _buildInput(
                             controller: attackBonusController,
                             label: 'Attack Bonus',
                             keyboardType: const TextInputType.numberWithOptions(
@@ -79,71 +124,153 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
                             ),
                             required: true,
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: _buildDamageInputs(
+                          const SizedBox(height: 8),
+                          _buildDamageInputs(
                             damageDiceController,
                             damageModifierController,
                           ),
-                        ),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        _buildInput(
-                          controller: nameController,
-                          label: 'Name',
-                          required: true,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInput(
-                          controller: attackBonusController,
-                          label: 'Attack Bonus',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            signed: true,
+                        ],
+                      ),
+
+                    const SizedBox(height: 16),
+
+                    if (isWide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _buildDropdown<WeaponGroup>(
+                              value: selectedWeaponGroup,
+                              label: 'Weapon Group',
+                              items: WeaponGroup.meleeGroups,
+                              itemLabel: _weaponGroupLabel,
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedWeaponGroup = value;
+                                });
+                              },
+                            ),
                           ),
-                          required: true,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildDamageInputs(
-                          damageDiceController,
-                          damageModifierController,
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildDropdown<WeaponAttribute>(
+                              value: selectedMainAttribute,
+                              label: 'Main Attribute',
+                              items: WeaponAttribute.values,
+                              itemLabel: _weaponAttributeLabel,
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedMainAttribute = value;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Column(
+                        children: [
+                          _buildDropdown<WeaponGroup>(
+                            value: selectedWeaponGroup,
+                            label: 'Weapon Group',
+                            items: WeaponGroup.meleeGroups,
+                            itemLabel: _weaponGroupLabel,
+                            onChanged: (value) {
+                              setDialogState(() {
+                                selectedWeaponGroup = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          _buildDropdown<WeaponAttribute>(
+                            value: selectedMainAttribute,
+                            label: 'Main Attribute',
+                            items: WeaponAttribute.values,
+                            itemLabel: _weaponAttributeLabel,
+                            onChanged: (value) {
+                              setDialogState(() {
+                                selectedMainAttribute = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(height: 8),
+
+                    if (isWide)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInput(
+                              controller: minStrengthController,
+                              label: 'Min Strength',
+                              keyboardType: TextInputType.number,
+                              minValue: 0,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildInput(
+                              controller: costController,
+                              label: 'Cost',
+                              keyboardType: TextInputType.number,
+                              minValue: 0,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Column(
+                        children: [
+                          _buildInput(
+                            controller: minStrengthController,
+                            label: 'Min Strength',
+                            keyboardType: TextInputType.number,
+                            minValue: 0,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildInput(
+                            controller: costController,
+                            label: 'Cost',
+                            keyboardType: TextInputType.number,
+                            minValue: 0,
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(height: 8),
+
+                    _buildInput(
+                      controller: detailsController,
+                      label: 'Weapon Details',
+                      maxLines: 1,
                     ),
-                  const SizedBox(height: 8),
-                  _buildInput(
-                    controller: detailsController,
-                    label: 'Weapon Details',
-                    maxLines: 1,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (!formKey.currentState!.validate()) return;
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text(
+                'Save',
+                style: TextStyle(color: Colors.greenAccent),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white54),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              if (!formKey.currentState!.validate()) return;
-              Navigator.pop(dialogContext, true);
-            },
-            child: const Text(
-              'Save',
-              style: TextStyle(color: Colors.greenAccent),
-            ),
-          ),
-        ],
       ),
     );
 
@@ -154,6 +281,10 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
         damageDice: int.parse(damageDiceController.text.trim()),
         damageModifier: int.parse(damageModifierController.text.trim()),
         details: detailsController.text.trim(),
+        weaponGroup: selectedWeaponGroup,
+        mainAttribute: selectedMainAttribute,
+        minStrength: int.tryParse(minStrengthController.text.trim()),
+        cost: int.tryParse(costController.text.trim()),
       );
 
       setState(() {
@@ -171,7 +302,74 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
       damageDiceController.dispose();
       damageModifierController.dispose();
       detailsController.dispose();
+      minStrengthController.dispose();
+      costController.dispose();
     });
+  }
+
+  String _weaponGroupLabel(WeaponGroup group) {
+    switch (group) {
+      case WeaponGroup.axes:
+        return 'Axes';
+      case WeaponGroup.bludgeons:
+        return 'Bludgeons';
+      case WeaponGroup.bows:
+        return 'Bows';
+      case WeaponGroup.brawling:
+        return 'Brawling';
+      case WeaponGroup.heavyBlades:
+        return 'Heavy Blades';
+      case WeaponGroup.lightBlades:
+        return 'Light Blades';
+      case WeaponGroup.spear:
+        return 'Spear';
+      case WeaponGroup.staves:
+        return 'Staves';
+    }
+  }
+
+  String _weaponAttributeLabel(WeaponAttribute attribute) {
+    switch (attribute) {
+      case WeaponAttribute.strength:
+        return 'Strength';
+      case WeaponAttribute.dexterity:
+        return 'Dexterity';
+      case WeaponAttribute.magic:
+        return 'Magic';
+    }
+  }
+
+  Widget _buildDropdown<T extends Enum>({
+    required T? value,
+    required String label,
+    required List<T> items,
+    required String Function(T) itemLabel,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return DropdownButtonFormField<T>(
+      initialValue: value,
+      isExpanded: true,
+      dropdownColor: const Color(0xFF2A2A2A),
+      style: const TextStyle(color: Colors.white, fontSize: 14),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.white24),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.white54),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      hint: const Text('Select', style: TextStyle(color: Colors.white30)),
+      iconEnabledColor: Colors.white54,
+      items: items.map((item) {
+        return DropdownMenuItem<T>(value: item, child: Text(itemLabel(item)));
+      }).toList(),
+      onChanged: onChanged,
+    );
   }
 
   Widget _buildDamageInputs(
@@ -438,21 +636,22 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
             onTap: () => _editWeapon(index: index),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+              height: _detailsHeight,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: const BoxDecoration(
                 border: Border(top: BorderSide(color: Color(0xFF303030))),
               ),
-              child: Text(
-                weapon.details.isEmpty
-                    ? 'Add weapon details...'
-                    : weapon.details,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: weapon.details.isEmpty
-                      ? Colors.white30
-                      : Colors.white60,
-                  fontSize: 11,
+              child: SingleChildScrollView(
+                child: Text(
+                  weapon.details.isEmpty
+                      ? 'Add weapon details...'
+                      : weapon.details,
+                  style: TextStyle(
+                    color: weapon.details.isEmpty
+                        ? Colors.white30
+                        : Colors.white60,
+                    fontSize: 11,
+                  ),
                 ),
               ),
             ),
@@ -495,7 +694,16 @@ class _MeleeWeaponsSectionState extends State<MeleeWeaponsSection> {
               ),
             )
           else
-            ...List.generate(_weapons.length, _weaponRow),
+            SizedBox(
+              height:
+                  _weaponRowHeight *
+                  (_weapons.length > 3 ? 3 : _weapons.length),
+              child: ListView.builder(
+                itemCount: _weapons.length,
+                itemExtent: _weaponRowHeight,
+                itemBuilder: (context, index) => _weaponRow(index),
+              ),
+            ),
           Container(
             decoration: const BoxDecoration(
               border: Border(top: BorderSide(color: Color(0xFF383838))),

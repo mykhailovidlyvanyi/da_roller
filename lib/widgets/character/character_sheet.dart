@@ -2,6 +2,8 @@
 
 import 'package:material_ui/material_ui.dart';
 
+import '../../models/dice/dice_roll.dart';
+
 import 'attributes/attributes_section.dart';
 
 import 'character_info/character_header.dart';
@@ -9,12 +11,11 @@ import 'character_info/character_info_section.dart';
 
 import 'combat/combat_section.dart';
 
-import 'melee_weapons/melee_weapons_section.dart';
+import 'weapons/melee_weapons_section.dart';
+import 'weapons/ranged_weapons_and_ammunition_section.dart';
 
 import 'shared/section_title.dart';
 import 'shared/placeholder_section.dart';
-
-import '../../models/dice/dice_roll.dart';
 
 class CharacterSheet extends StatefulWidget {
   final ValueChanged<DiceRoll> onRoll;
@@ -67,6 +68,10 @@ class _CharacterSheetState extends State<CharacterSheet> {
                 const SizedBox(height: 20),
 
                 MeleeWeaponsSection(onRoll: widget.onRoll),
+
+                const SizedBox(height: 16),
+
+                RangedWeaponsAndAmmunitionSection(onRoll: widget.onRoll),
 
                 const SizedBox(height: 32),
 

@@ -21,6 +21,7 @@ class DiceResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const resultItemWidth = 56.0;
+    const resultItemHeight = 28.0;
 
     final displayDiceCount = diceCount < 3 ? 3 : diceCount;
 
@@ -45,6 +46,7 @@ class DiceResults extends StatelessWidget {
     Widget resultItem(String label, int? value, {Color? color}) {
       return SizedBox(
         width: resultItemWidth,
+        height: resultItemHeight,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -54,14 +56,13 @@ class DiceResults extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white54, fontSize: 8),
+              style: const TextStyle(color: Colors.white54, fontSize: 7),
             ),
-            const SizedBox(height: 2),
             Text(
               value?.toString() ?? '-',
               style: TextStyle(
                 color: color ?? Colors.white,
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -73,18 +74,18 @@ class DiceResults extends StatelessWidget {
     Widget totalItem() {
       return SizedBox(
         width: resultItemWidth,
+        height: resultItemHeight,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
               'Total',
-              style: TextStyle(color: Colors.white54, fontSize: 8),
+              style: TextStyle(color: Colors.white54, fontSize: 7),
             ),
-            const SizedBox(height: 2),
             Container(
-              width: 28,
-              height: 28,
+              width: 18,
+              height: 18,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -94,7 +95,7 @@ class DiceResults extends StatelessWidget {
                 total?.toString() ?? '-',
                 style: const TextStyle(
                   color: Colors.amberAccent,
-                  fontSize: 13,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
               ),
