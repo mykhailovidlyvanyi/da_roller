@@ -2,10 +2,10 @@
 
 import 'package:material_ui/material_ui.dart';
 
-import '../models/dice_set_skin.dart';
-import '../widgets/dice/dice_group.dart';
-import '../widgets/dice/dice_panel.dart';
-import '../widgets/dice/dice_stunts.dart';
+import '../models/dice/dice_set_skin.dart';
+import '../widgets/dice/panel/dice_group.dart';
+import '../widgets/dice/panel/dice_panel.dart';
+import '../widgets/dice/stunts/dice_stunts.dart';
 import '../widgets/effects/confetti_overlay.dart';
 import '../widgets/character/character_sheet.dart';
 

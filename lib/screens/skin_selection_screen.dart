@@ -2,7 +2,7 @@
 
 import 'package:material_ui/material_ui.dart';
 
-import '../models/dice_set_skin.dart';
+import '../models/dice/dice_set_skin.dart';
 
 class SkinSelectionScreen extends StatefulWidget {
   final DiceSetSkin selectedSkinSet;

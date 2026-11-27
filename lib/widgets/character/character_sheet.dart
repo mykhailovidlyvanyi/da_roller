@@ -2,13 +2,13 @@
 
 import 'package:material_ui/material_ui.dart';
 
-import 'attributes_section.dart';
-import 'character_header.dart';
-import 'character_info_section.dart';
-import 'combat_section.dart';
-import 'melee_weapons_section.dart';
-import 'section_title.dart';
-import 'placeholder_section.dart';
+import 'attributes/attributes_section.dart';
+import 'character_info/character_header.dart';
+import 'character_info/character_info_section.dart';
+import 'combat/combat_section.dart';
+import 'melee_weapons/melee_weapons_section.dart';
+import 'shared/section_title.dart';
+import 'shared/placeholder_section.dart';
 
 class CharacterSheet extends StatefulWidget {
   final ValueChanged<int?> onRollDice;

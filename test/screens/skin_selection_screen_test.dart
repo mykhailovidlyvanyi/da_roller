@@ -3,7 +3,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:da_roller/models/dice_set_skin.dart';
+import 'package:da_roller/models/dice/dice_set_skin.dart';
 import 'package:da_roller/screens/skin_selection_screen.dart';
 
 void main() {
