@@ -18,6 +18,10 @@ class RangedWeaponsAndAmmunitionSection extends StatelessWidget {
   final ValueChanged<RangedWeapon> onAddWeapon;
   final ValueChanged<RangedWeapon> onUpdateWeapon;
   final ValueChanged<String> onRemoveWeapon;
+  final String? equippedWeaponId;
+  final ValueChanged<String?> onEquipWeapon;
+  final String? equippedAmmunitionId;
+  final ValueChanged<String?> onEquipAmmunition;
 
   const RangedWeaponsAndAmmunitionSection({
     super.key,
@@ -28,6 +32,10 @@ class RangedWeaponsAndAmmunitionSection extends StatelessWidget {
     required this.onAddWeapon,
     required this.onUpdateWeapon,
     required this.onRemoveWeapon,
+    required this.equippedWeaponId,
+    required this.onEquipWeapon,
+    required this.equippedAmmunitionId,
+    required this.onEquipAmmunition,
   });
 
   @override
@@ -44,12 +52,16 @@ class RangedWeaponsAndAmmunitionSection extends StatelessWidget {
           onUpdateWeapon: onUpdateWeapon,
           onRemoveWeapon: onRemoveWeapon,
           onRoll: onRoll,
+          equippedWeaponId: equippedWeaponId,
+          onEquipWeapon: onEquipWeapon,
         );
 
         final ammunition = AmmunitionStorageSection(
           storage: storage,
           onStorageChanged: onStorageChanged,
           expandToFill: !isNarrow,
+          equippedStackId: equippedAmmunitionId,
+          onEquipStack: onEquipAmmunition,
         );
 
         if (isNarrow) {

@@ -51,6 +51,8 @@ void main() {
                   });
                 },
                 onRoll: onRoll ?? (_) {},
+                equippedWeaponId: null,
+                onEquipWeapon: (_) {},
               );
             },
           ),

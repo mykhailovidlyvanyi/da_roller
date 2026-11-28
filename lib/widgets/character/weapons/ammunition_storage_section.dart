@@ -2,27 +2,31 @@
 
 import 'package:material_ui/material_ui.dart';
 
-import '../../../models/ammunition/ammunition.dart';
-import '../../../models/ammunition/ammunition_stack.dart';
-import '../../../models/ammunition/ammunition_storage.dart';
-import '../../../models/weapons/weapon_group.dart';
+import 'package:da_roller/models/ammunition/ammunition.dart';
+import 'package:da_roller/models/ammunition/ammunition_stack.dart';
+import 'package:da_roller/models/ammunition/ammunition_storage.dart';
 
-import '../common/form_dropdown.dart';
-import '../common/form_input.dart';
-import '../common/editable_value_cell.dart';
-import '../common/header_cell.dart';
-import '../common/editable_item_row.dart';
+import 'package:da_roller/models/weapons/weapon_group.dart';
+
+import 'package:da_roller/widgets/character/common/ammunition_editor.dart';
+import 'package:da_roller/widgets/character/common/editable_value_cell.dart';
+import 'package:da_roller/widgets/character/common/header_cell.dart';
+import 'package:da_roller/widgets/character/common/editable_item_row.dart';
 
 class AmmunitionStorageSection extends StatefulWidget {
   final AmmunitionStorage storage;
   final ValueChanged<AmmunitionStorage> onStorageChanged;
   final bool expandToFill;
+  final String? equippedStackId;
+  final ValueChanged<String?> onEquipStack;
 
   const AmmunitionStorageSection({
     super.key,
     required this.storage,
     required this.onStorageChanged,
     this.expandToFill = true,
+    required this.equippedStackId,
+    required this.onEquipStack,
   });
 
   @override
@@ -33,143 +37,40 @@ class AmmunitionStorageSection extends StatefulWidget {
 class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
   static const double _ammunitionRowHeight = 80;
 
+  List<AmmunitionStack> get _displayedStacks {
+    final equippedStackId = widget.equippedStackId;
+
+    return [
+      ...widget.storage.stacks.where((stack) => stack.id == equippedStackId),
+      ...widget.storage.stacks.where((stack) => stack.id != equippedStackId),
+    ];
+  }
+
   Future<void> _editAmmunition({int? index}) async {
     final existingStack = index == null ? null : widget.storage.stacks[index];
-    final existingAmmunition = existingStack?.ammunition;
 
-    final nameController = TextEditingController(
-      text: existingAmmunition?.name ?? '',
-    );
-    final quantityController = TextEditingController(
-      text: (existingStack?.quantity ?? 1).toString(),
-    );
-    final detailsController = TextEditingController(
-      text: existingAmmunition?.details ?? '',
+    final updatedStack = await AmmunitionEditor.show(
+      context,
+      existingStack: existingStack,
     );
 
-    WeaponGroup? selectedGroup =
-        existingAmmunition?.compatibleWeaponGroups.firstOrNull;
+    if (updatedStack == null || !mounted) return;
 
-    final formKey = GlobalKey<FormState>();
+    final updatedStacks = [...widget.storage.stacks];
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final contentWidth = (screenWidth - 128).clamp(160.0, 512.0);
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF2A2A2A),
-          title: Text(
-            existingStack == null ? 'Add Ammunition' : 'Edit Ammunition',
-            style: const TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          content: SingleChildScrollView(
-            child: SizedBox(
-              width: contentWidth,
-              child: Form(
-                key: formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    FormInput(
-                      controller: nameController,
-                      label: 'Name',
-                      isRequired: true,
-                    ),
-                    const SizedBox(height: 12),
-                    FormInput(
-                      controller: quantityController,
-                      label: 'Quantity',
-                      keyboardType: TextInputType.number,
-                      isRequired: true,
-                      isInteger: true,
-                      minValue: 0,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Compatible Weapon Groups',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    FormDropdown<WeaponGroup>(
-                      label: 'Compatible Weapon Group',
-                      value: selectedGroup,
-                      items: WeaponGroup.rangedGroups,
-                      itemLabel: _weaponGroupLabel,
-                      onChanged: (group) {
-                        setDialogState(() {
-                          selectedGroup = group;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    FormInput(
-                      controller: detailsController,
-                      label: 'Ammunition Details',
-                      maxLines: 2,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white54),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                if (!formKey.currentState!.validate()) return;
-                Navigator.pop(dialogContext, true);
-              },
-              child: const Text(
-                'Save',
-                style: TextStyle(color: Colors.greenAccent),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (result == true && mounted) {
-      final ammunition = Ammunition(
-        name: nameController.text.trim(),
-        details: detailsController.text.trim(),
-        compatibleWeaponGroups: selectedGroup == null ? [] : [selectedGroup!],
-      );
-
-      final stack = AmmunitionStack(
-        id: existingStack?.id,
-        ammunition: ammunition,
-        quantity: int.parse(quantityController.text.trim()),
-      );
-
-      final updatedStacks = [...widget.storage.stacks];
-
-      if (index == null) {
-        updatedStacks.add(stack);
-      } else {
-        updatedStacks[index] = stack;
-      }
-
-      widget.onStorageChanged(AmmunitionStorage(stacks: updatedStacks));
+    if (index == null) {
+      updatedStacks.add(updatedStack);
+    } else {
+      updatedStacks[index] = updatedStack;
     }
 
-    Future<void>.delayed(const Duration(milliseconds: 300), () {
-      nameController.dispose();
-      quantityController.dispose();
-      detailsController.dispose();
-    });
+    widget.onStorageChanged(AmmunitionStorage(stacks: updatedStacks));
+  }
+
+  void _removeAmmunition(int index) {
+    final updatedStacks = [...widget.storage.stacks]..removeAt(index);
+
+    widget.onStorageChanged(AmmunitionStorage(stacks: updatedStacks));
   }
 
   String _weaponGroupLabel(WeaponGroup group) {
@@ -193,12 +94,6 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
     }
   }
 
-  void _removeAmmunition(int index) {
-    final updatedStacks = [...widget.storage.stacks]..removeAt(index);
-
-    widget.onStorageChanged(AmmunitionStorage(stacks: updatedStacks));
-  }
-
   String _compatibleGroupsLabel(Ammunition ammunition) {
     if (ammunition.compatibleWeaponGroups.isEmpty) {
       return 'Not specified';
@@ -207,33 +102,39 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
     return ammunition.compatibleWeaponGroups.map(_weaponGroupLabel).join(', ');
   }
 
-  Widget _ammunitionRow(int index) {
-    final stack = widget.storage.stacks[index];
+  Widget _ammunitionRow(AmmunitionStack stack) {
     final ammunition = stack.ammunition;
+    final originalIndex = widget.storage.stacks.indexWhere(
+      (item) => item.id == stack.id,
+    );
 
     return EditableItemRow(
       cells: [
+        Expanded(
+          flex: 2,
+          child: Center(child: Radio<String>(value: stack.id)),
+        ),
         EditableValueCell(
           value: ammunition.name,
           flex: 3,
-          onTap: () => _editAmmunition(index: index),
+          onTap: () => _editAmmunition(index: originalIndex),
         ),
         EditableValueCell(
           value: stack.quantity.toString(),
           flex: 1,
-          onTap: () => _editAmmunition(index: index),
+          onTap: () => _editAmmunition(index: originalIndex),
         ),
         EditableValueCell(
           value: _compatibleGroupsLabel(ammunition),
           flex: 3,
-          onTap: () => _editAmmunition(index: index),
+          onTap: () => _editAmmunition(index: originalIndex),
         ),
         IconButton(
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints.tightFor(width: 28, height: 36),
           tooltip: 'Remove ammunition',
-          onPressed: () => _removeAmmunition(index),
+          onPressed: () => _removeAmmunition(originalIndex),
           icon: const Icon(
             Icons.delete_outline,
             color: Colors.white38,
@@ -243,7 +144,7 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
       ],
       details: ammunition.details,
       emptyDetailsText: 'Add ammunition details...',
-      onDetailsTap: () => _editAmmunition(index: index),
+      onDetailsTap: () => _editAmmunition(index: originalIndex),
     );
   }
 
@@ -277,10 +178,11 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
 
   @override
   Widget build(BuildContext context) {
-    final hasAmmunition = widget.storage.stacks.isNotEmpty;
-    final visibleRowCount = widget.storage.stacks.length > 3
+    final displayedStacks = _displayedStacks;
+    final hasAmmunition = displayedStacks.isNotEmpty;
+    final visibleRowCount = displayedStacks.length > 3
         ? 3
-        : widget.storage.stacks.length;
+        : displayedStacks.length;
 
     return Container(
       decoration: BoxDecoration(
@@ -296,6 +198,27 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Row(
                 children: [
+                  Expanded(
+                    flex: 2,
+                    child: Center(
+                      child: TextButton(
+                        onPressed: widget.equippedStackId == null
+                            ? null
+                            : () => widget.onEquipStack(null),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.greenAccent,
+                          disabledForegroundColor: Colors.white24,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          'Unequip',
+                          style: TextStyle(fontSize: 11),
+                        ),
+                      ),
+                    ),
+                  ),
                   HeaderCell(text: 'AMMUNITION', flex: 3),
                   HeaderCell(text: 'QTY', flex: 1),
                   HeaderCell(text: 'COMPATIBLE GROUPS', flex: 3),
@@ -303,12 +226,17 @@ class _AmmunitionStorageSectionState extends State<AmmunitionStorageSection> {
                 ],
               ),
             ),
-            SizedBox(
-              height: _ammunitionRowHeight * visibleRowCount,
-              child: ListView.builder(
-                itemCount: widget.storage.stacks.length,
-                itemExtent: _ammunitionRowHeight,
-                itemBuilder: (context, index) => _ammunitionRow(index),
+            RadioGroup<String>(
+              groupValue: widget.equippedStackId,
+              onChanged: widget.onEquipStack,
+              child: SizedBox(
+                height: _ammunitionRowHeight * visibleRowCount,
+                child: ListView.builder(
+                  itemCount: displayedStacks.length,
+                  itemExtent: _ammunitionRowHeight,
+                  itemBuilder: (context, index) =>
+                      _ammunitionRow(displayedStacks[index]),
+                ),
               ),
             ),
           ],

@@ -2,26 +2,23 @@
 
 import 'package:material_ui/material_ui.dart';
 
-import '../../models/dice/dice_roll.dart';
-import '../../models/character/character_inventory.dart';
-import '../../models/character/character_equipment.dart';
-import '../../models/weapons/melee_weapon.dart';
-import '../../models/weapons/ranged_weapon.dart';
+import 'package:da_roller/models/dice/dice_roll.dart';
+import 'package:da_roller/models/character/character_inventory.dart';
+import 'package:da_roller/models/character/character_equipment.dart';
+import 'package:da_roller/models/character/miscellaneous_item.dart';
+import 'package:da_roller/models/weapons/melee_weapon.dart';
+import 'package:da_roller/models/weapons/ranged_weapon.dart';
+import 'package:da_roller/models/ammunition/ammunition_storage.dart';
 
-import '../../models/ammunition/ammunition_storage.dart';
-
-import 'attributes/attributes_section.dart';
-
-import 'character_info/character_header.dart';
-import 'character_info/character_info_section.dart';
-
-import 'combat/combat_section.dart';
-
-import 'weapons/melee_weapons_section.dart';
-import 'weapons/ranged_weapons_and_ammunition_section.dart';
-
-import 'common/section_title.dart';
-import 'common/placeholder_section.dart';
+import 'package:da_roller/widgets/character/attributes/attributes_section.dart';
+import 'package:da_roller/widgets/character/character_info/character_header.dart';
+import 'package:da_roller/widgets/character/character_info/character_info_section.dart';
+import 'package:da_roller/widgets/character/combat/combat_section.dart';
+import 'package:da_roller/widgets/character/weapons/melee_weapons_section.dart';
+import 'package:da_roller/widgets/character/weapons/ranged_weapons_and_ammunition_section.dart';
+import 'package:da_roller/widgets/character/common/section_title.dart';
+import 'package:da_roller/widgets/character/common/placeholder_section.dart';
+import 'package:da_roller/widgets/character/inventory/inventory_section.dart';
 
 class CharacterSheet extends StatefulWidget {
   final ValueChanged<DiceRoll> onRoll;
@@ -36,7 +33,15 @@ class CharacterSheet extends StatefulWidget {
   final ValueChanged<RangedWeapon> onUpdateRangedWeapon;
   final ValueChanged<String> onRemoveRangedWeapon;
 
+  final ValueChanged<MiscellaneousItem> onAddMiscellaneousItem;
+  final ValueChanged<MiscellaneousItem> onUpdateMiscellaneousItem;
+  final ValueChanged<String> onRemoveMiscellaneousItem;
+
   final ValueChanged<AmmunitionStorage> onAmmunitionStorageChanged;
+
+  final ValueChanged<String?> onEquipMeleeWeapon;
+  final ValueChanged<String?> onEquipRangedWeapon;
+  final ValueChanged<String?> onEquipAmmunition;
 
   const CharacterSheet({
     super.key,
@@ -50,6 +55,12 @@ class CharacterSheet extends StatefulWidget {
     required this.onAddRangedWeapon,
     required this.onUpdateRangedWeapon,
     required this.onRemoveRangedWeapon,
+    required this.onAddMiscellaneousItem,
+    required this.onUpdateMiscellaneousItem,
+    required this.onRemoveMiscellaneousItem,
+    required this.onEquipMeleeWeapon,
+    required this.onEquipRangedWeapon,
+    required this.onEquipAmmunition,
   });
 
   @override
@@ -75,9 +86,7 @@ class _CharacterSheetState extends State<CharacterSheet> {
             },
           ),
         ),
-
         const SizedBox(width: 16),
-
         Expanded(
           flex: 4,
           child: SingleChildScrollView(
@@ -86,27 +95,21 @@ class _CharacterSheetState extends State<CharacterSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const CharacterHeader(),
-
                 const SizedBox(height: 24),
-
                 const CharacterInfoSection(),
-
                 const SizedBox(height: 32),
-
                 CombatSection(dexterity: _dexterity),
-
                 const SizedBox(height: 20),
-
                 MeleeWeaponsSection(
                   weapons: widget.inventory.meleeWeapons,
                   onAddWeapon: widget.onAddMeleeWeapon,
                   onUpdateWeapon: widget.onUpdateMeleeWeapon,
                   onRemoveWeapon: widget.onRemoveMeleeWeapon,
                   onRoll: widget.onRoll,
+                  equippedWeaponId: widget.equipment.equippedMeleeWeaponId,
+                  onEquipWeapon: widget.onEquipMeleeWeapon,
                 ),
-
                 const SizedBox(height: 16),
-
                 RangedWeaponsAndAmmunitionSection(
                   onRoll: widget.onRoll,
                   weapons: widget.inventory.rangedWeapons,
@@ -115,32 +118,40 @@ class _CharacterSheetState extends State<CharacterSheet> {
                   onRemoveWeapon: widget.onRemoveRangedWeapon,
                   storage: widget.inventory.ammunitionStorage,
                   onStorageChanged: widget.onAmmunitionStorageChanged,
+                  equippedWeaponId: widget.equipment.equippedRangedWeaponId,
+                  onEquipWeapon: widget.onEquipRangedWeapon,
+                  equippedAmmunitionId: widget.equipment.equippedAmmunitionId,
+                  onEquipAmmunition: widget.onEquipAmmunition,
                 ),
-
                 const SizedBox(height: 32),
-
                 const SectionTitle(title: 'ABILITIES & TALENTS'),
-
                 const SizedBox(height: 12),
-
                 const PlaceholderSection(
                   text: 'Abilities and talents will appear here',
                 ),
-
                 const SizedBox(height: 24),
-
                 const SectionTitle(title: 'EQUIPMENT'),
-
                 const SizedBox(height: 12),
-
-                const PlaceholderSection(text: 'Weapons, armor and equipment'),
-
+                InventorySection(
+                  inventory: widget.inventory,
+                  equipment: widget.equipment,
+                  onAddMeleeWeapon: widget.onAddMeleeWeapon,
+                  onAddRangedWeapon: widget.onAddRangedWeapon,
+                  onRemoveMeleeWeapon: widget.onRemoveMeleeWeapon,
+                  onRemoveRangedWeapon: widget.onRemoveRangedWeapon,
+                  onAmmunitionStorageChanged: widget.onAmmunitionStorageChanged,
+                  onEquipMeleeWeapon: widget.onEquipMeleeWeapon,
+                  onEquipRangedWeapon: widget.onEquipRangedWeapon,
+                  onEquipAmmunition: widget.onEquipAmmunition,
+                  onUpdateMeleeWeapon: widget.onUpdateMeleeWeapon,
+                  onUpdateRangedWeapon: widget.onUpdateRangedWeapon,
+                  onAddMiscellaneousItem: widget.onAddMiscellaneousItem,
+                  onUpdateMiscellaneousItem: widget.onUpdateMiscellaneousItem,
+                  onRemoveMiscellaneousItem: widget.onRemoveMiscellaneousItem,
+                ),
                 const SizedBox(height: 24),
-
                 const SectionTitle(title: 'NOTES'),
-
                 const SizedBox(height: 12),
-
                 const PlaceholderSection(
                   text: 'Character notes and background',
                 ),

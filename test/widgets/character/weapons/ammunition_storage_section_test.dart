@@ -22,6 +22,8 @@ class _AmmunitionTestHostState extends State<AmmunitionTestHost> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AmmunitionStorageSection(
+        equippedStackId: null,
+        onEquipStack: (_) {},
         storage: storage,
         onStorageChanged: (updatedStorage) {
           setState(() {

@@ -2,14 +2,15 @@
 
 import 'package:material_ui/material_ui.dart';
 
-import '../../models/dice/dice_roll.dart';
-import '../../models/character/character_inventory.dart';
-import '../../models/character/character_equipment.dart';
-import '../../models/weapons/melee_weapon.dart';
-import '../../models/ammunition/ammunition_storage.dart';
-import '../../models/weapons/ranged_weapon.dart';
+import 'package:da_roller/models/dice/dice_roll.dart';
+import 'package:da_roller/models/character/character_inventory.dart';
+import 'package:da_roller/models/character/character_equipment.dart';
+import 'package:da_roller/models/character/miscellaneous_item.dart';
+import 'package:da_roller/models/weapons/melee_weapon.dart';
+import 'package:da_roller/models/ammunition/ammunition_storage.dart';
+import 'package:da_roller/models/weapons/ranged_weapon.dart';
 
-import 'character_sheet.dart';
+import 'package:da_roller/widgets/character/character_sheet.dart';
 
 class CharacterController extends StatefulWidget {
   final ValueChanged<DiceRoll> onRoll;
@@ -21,7 +22,7 @@ class CharacterController extends StatefulWidget {
 }
 
 class _CharacterControllerState extends State<CharacterController> {
-  CharacterInventory _inventory = const CharacterInventory();
+  CharacterInventory _inventory = CharacterInventory();
   CharacterEquipment _equipment = const CharacterEquipment();
 
   void _updateAmmunitionStorage(AmmunitionStorage storage) {
@@ -30,7 +31,19 @@ class _CharacterControllerState extends State<CharacterController> {
         meleeWeapons: _inventory.meleeWeapons,
         rangedWeapons: _inventory.rangedWeapons,
         ammunitionStorage: storage,
+        miscellaneousItems: _inventory.miscellaneousItems,
       );
+
+      final equippedAmmunitionId = _equipment.equippedAmmunitionId;
+
+      if (equippedAmmunitionId != null &&
+          !storage.stacks.any((stack) => stack.id == equippedAmmunitionId)) {
+        _equipment = CharacterEquipment(
+          equippedMeleeWeaponId: _equipment.equippedMeleeWeaponId,
+          equippedRangedWeaponId: _equipment.equippedRangedWeaponId,
+          equippedAmmunitionId: null,
+        );
+      }
     });
   }
 
@@ -40,6 +53,7 @@ class _CharacterControllerState extends State<CharacterController> {
         meleeWeapons: _inventory.meleeWeapons,
         rangedWeapons: [..._inventory.rangedWeapons, weapon],
         ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems,
       );
     });
   }
@@ -52,6 +66,7 @@ class _CharacterControllerState extends State<CharacterController> {
           return weapon.id == updatedWeapon.id ? updatedWeapon : weapon;
         }).toList(),
         ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems,
       );
     });
   }
@@ -64,6 +79,7 @@ class _CharacterControllerState extends State<CharacterController> {
             .where((weapon) => weapon.id != weaponId)
             .toList(),
         ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems,
       );
 
       if (_equipment.equippedRangedWeaponId == weaponId) {
@@ -82,6 +98,7 @@ class _CharacterControllerState extends State<CharacterController> {
         meleeWeapons: [..._inventory.meleeWeapons, weapon],
         rangedWeapons: _inventory.rangedWeapons,
         ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems,
       );
     });
   }
@@ -94,6 +111,7 @@ class _CharacterControllerState extends State<CharacterController> {
         }).toList(),
         rangedWeapons: _inventory.rangedWeapons,
         ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems,
       );
     });
   }
@@ -106,6 +124,7 @@ class _CharacterControllerState extends State<CharacterController> {
             .toList(),
         rangedWeapons: _inventory.rangedWeapons,
         ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems,
       );
 
       if (_equipment.equippedMeleeWeaponId == weaponId) {
@@ -115,6 +134,73 @@ class _CharacterControllerState extends State<CharacterController> {
           equippedAmmunitionId: _equipment.equippedAmmunitionId,
         );
       }
+    });
+  }
+
+  void _addMiscellaneousItem(MiscellaneousItem item) {
+    setState(() {
+      _inventory = CharacterInventory(
+        meleeWeapons: _inventory.meleeWeapons,
+        rangedWeapons: _inventory.rangedWeapons,
+        ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: [..._inventory.miscellaneousItems, item],
+      );
+    });
+  }
+
+  void _updateMiscellaneousItem(MiscellaneousItem updatedItem) {
+    setState(() {
+      _inventory = CharacterInventory(
+        meleeWeapons: _inventory.meleeWeapons,
+        rangedWeapons: _inventory.rangedWeapons,
+        ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems.map((item) {
+          return item.id == updatedItem.id ? updatedItem : item;
+        }).toList(),
+      );
+    });
+  }
+
+  void _removeMiscellaneousItem(String itemId) {
+    setState(() {
+      _inventory = CharacterInventory(
+        meleeWeapons: _inventory.meleeWeapons,
+        rangedWeapons: _inventory.rangedWeapons,
+        ammunitionStorage: _inventory.ammunitionStorage,
+        miscellaneousItems: _inventory.miscellaneousItems
+            .where((item) => item.id != itemId)
+            .toList(),
+      );
+    });
+  }
+
+  void _setEquippedMeleeWeapon(String? weaponId) {
+    setState(() {
+      _equipment = CharacterEquipment(
+        equippedMeleeWeaponId: weaponId,
+        equippedRangedWeaponId: _equipment.equippedRangedWeaponId,
+        equippedAmmunitionId: _equipment.equippedAmmunitionId,
+      );
+    });
+  }
+
+  void _setEquippedRangedWeapon(String? weaponId) {
+    setState(() {
+      _equipment = CharacterEquipment(
+        equippedMeleeWeaponId: _equipment.equippedMeleeWeaponId,
+        equippedRangedWeaponId: weaponId,
+        equippedAmmunitionId: _equipment.equippedAmmunitionId,
+      );
+    });
+  }
+
+  void _setEquippedAmmunition(String? stackId) {
+    setState(() {
+      _equipment = CharacterEquipment(
+        equippedMeleeWeaponId: _equipment.equippedMeleeWeaponId,
+        equippedRangedWeaponId: _equipment.equippedRangedWeaponId,
+        equippedAmmunitionId: stackId,
+      );
     });
   }
 
@@ -131,6 +217,12 @@ class _CharacterControllerState extends State<CharacterController> {
       onAddRangedWeapon: _addRangedWeapon,
       onUpdateRangedWeapon: _updateRangedWeapon,
       onRemoveRangedWeapon: _removeRangedWeapon,
+      onAddMiscellaneousItem: _addMiscellaneousItem,
+      onUpdateMiscellaneousItem: _updateMiscellaneousItem,
+      onRemoveMiscellaneousItem: _removeMiscellaneousItem,
+      onEquipMeleeWeapon: _setEquippedMeleeWeapon,
+      onEquipRangedWeapon: _setEquippedRangedWeapon,
+      onEquipAmmunition: _setEquippedAmmunition,
     );
   }
 }
